@@ -1,0 +1,2 @@
+# Sublimation-for-Andriod
+这个工程使得Sublimation编译器获得编译代码为APk的能力
