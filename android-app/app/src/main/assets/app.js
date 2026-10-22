@@ -32,6 +32,13 @@ try{__dshBoot();}catch(e){}
         if (kind === "log") console.log(...args);
         return null;
       };
+  const __dc = (v) => {
+    if (v === null || typeof v !== "object") return v;
+    if (Array.isArray(v)) return v.map(__dc);
+    const o = {};
+    for (const k in v) o[k] = __dc(v[k]);
+    return o;
+  };
   function Alignment__Center() { return { tag: "Center" }; }
   const Center = Alignment__Center;
   function Alignment__TopStart() { return { tag: "TopStart" }; }
@@ -84,26 +91,27 @@ try{__dshBoot();}catch(e){}
   const Text = (text = "", modifier = Plain(), children = "", recomposion = (_) => {}) => ({ tag: "Text", text: text, modifier: modifier, children: children, recomposion: recomposion });
   async function main() {
     (globalThis.__dshLifecycle_onCreate = ((_) => {
-  __dshAndroid("log", ["Sublimation app started", 2]);
+  __dshAndroid("log", ["s", 2]);
 }), __dshAndroid("registerLifecycle", ["onCreate"]));
     (globalThis.__dshLifecycle_onStart = ((_) => (function(f){ return __dshAndroid("layout", [JSON.stringify(f(null))]); })(content)), __dshAndroid("registerLifecycle", ["onStart"]));
     return null;
   }
   function content(_e) {
-    return Box(fillMaxSize(), Center(), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = (onClicked), "Button_onClick_1"), undefined, [Text("Hello Sublimation", undefined, [], recomposion$Text$1)], recomposion$Button$1)], recomposion$Box$1);
+    let n = 0;
+    let label = Text("count: 0", undefined, [], recomposion$Text$1);
+    return Box(fillMaxSize(), Center(), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = ((_) => {
+  n = (n + 1);
+  (() => { const __c = __dc(label); __c.text = ("count: " + __dshtoStr(n)); __c.recomposion(__c); })();
+}), "Button_onClick_1"), undefined, [label], recomposion$Button$1)], recomposion$Box$1);
   }
-  function onClicked(_e) {
-    __dshAndroid("toast", ["clicked!", false]);
-    return null;
+  function recomposion$Text$1(v) {
+    return __dshAndroid("androidRecompose", ["Text", 1, JSON.stringify(v)]);
   }
   function recomposion$Box$1(v) {
     return __dshAndroid("androidRecompose", ["Box", 1, JSON.stringify(v)]);
   }
   function recomposion$Button$1(v) {
     return __dshAndroid("androidRecompose", ["Button", 1, JSON.stringify(v)]);
-  }
-  function recomposion$Text$1(v) {
-    return __dshAndroid("androidRecompose", ["Text", 1, JSON.stringify(v)]);
   }
   const dict_core_collection_Functor_List = {
     map: (d, fa, f) => (() => {

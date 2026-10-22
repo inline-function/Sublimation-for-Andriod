@@ -57,11 +57,18 @@ class DshBridge(private val activity: MainActivity) {
             }
             "layout" -> {
                 val viewJson = args.getOrNull(0)?.toString() ?: return "null"
-                activity.runOnUiThread { activity.setContentView(buildView(viewJson)) }
+                val root = JSONObject(viewJson)
+                rootJson = root
+                activity.runOnUiThread { activity.setContentView(buildView(root.toString())) }
             }
             "androidRecompose" -> {
+                // 重组：JS 端把修改好的视图副本传来（tag + 序号），在原树中原地替换该节点后整体重建。
                 val viewJson = args.getOrNull(2)?.toString() ?: return "null"
-                activity.runOnUiThread { activity.setContentView(buildView(viewJson)) }
+                val tag = args.getOrNull(0)?.toString() ?: return "null"
+                val ord = (args.getOrNull(1) as? Number)?.toInt() ?: 1
+                val rj = rootJson ?: return "null"
+                if (replaceNode(rj, tag, ord, JSONObject(viewJson)))
+                    activity.runOnUiThread { activity.setContentView(buildView(rj.toString())) }
             }
             else -> Log.w(tag, "unknown bridge kind: " + kind)
         }
@@ -159,7 +166,24 @@ class DshBridge(private val activity: MainActivity) {
         return out
     }
 
-    /** Modifier 枚举（JS 侧 {tag, 0}）→ 原生视图参数。 */
+    /** 当前视图树的 JSON。布局/重组时更新（重组按 tag+序号原地替换节点）。 */
+    private var rootJson: JSONObject? = null
+
+    /** 在树中按 DFS 序找到第 ord 个 tag 节点，替换为 replacement。 */
+    private fun replaceNode(node: JSONObject, tag: String, ord: Int, replacement: JSONObject): Boolean {
+        val children = node.optJSONArray("children") ?: return false
+        var count = 0
+        for (i in 0 until children.length()) {
+            val c = children.optJSONObject(i) ?: continue
+            if (c.optString("tag") == tag) {
+                count++
+                if (count == ord) { children.put(i, replacement); return true }
+            }
+            if (replaceNode(c, tag, ord, replacement)) return true
+        }
+        return false
+    }
+
     private fun setModifier(view: View, modifier: Any?) {
         val m = (modifier as? org.json.JSONObject) ?: return
         val tag = m.optString("tag", "Plain")
