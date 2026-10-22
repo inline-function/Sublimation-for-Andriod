@@ -98,11 +98,16 @@ class DshBridge(private val activity: MainActivity) {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT)
         }
-        val align = node.optJSONObject("contentAlignment")?.optInt("value", 0) ?: 0
+        val align = node.optJSONObject("contentAlignment")?.optString("tag", "Center") ?: "Center"
         val gravity = when (align) {
-            0 -> Gravity.CENTER; 1 -> Gravity.TOP or Gravity.START; 2 -> Gravity.BOTTOM or Gravity.END
-            3 -> Gravity.CENTER_VERTICAL or Gravity.START; 4 -> Gravity.CENTER_VERTICAL or Gravity.END
-            5 -> Gravity.TOP; 6 -> Gravity.BOTTOM; else -> Gravity.CENTER
+            "Center" -> Gravity.CENTER
+            "TopStart" -> Gravity.TOP or Gravity.START
+            "BottomEnd" -> Gravity.BOTTOM or Gravity.END
+            "CenterStart" -> Gravity.CENTER_VERTICAL or Gravity.START
+            "CenterEnd" -> Gravity.CENTER_VERTICAL or Gravity.END
+            "Top" -> Gravity.TOP
+            "Bottom" -> Gravity.BOTTOM
+            else -> Gravity.CENTER
         }
         ctx.gravity = gravity
         setModifier(ctx, node.opt("modifier"))
@@ -154,14 +159,29 @@ class DshBridge(private val activity: MainActivity) {
         return out
     }
 
+    /** Modifier 枚举（JS 侧 {tag, 0}）→ 原生视图参数。 */
     private fun setModifier(view: View, modifier: Any?) {
-        val m = (modifier as? org.json.JSONObject)?.optString("modifier", "") ?: ""
-        if (m.isEmpty()) return
+        val m = (modifier as? org.json.JSONObject) ?: return
+        val tag = m.optString("tag", "Plain")
+        if (tag.isEmpty() || tag == "Plain") return
         val lp = view.layoutParams ?: ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        if (m.contains("fillMaxSize")) {
-            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
-            lp.height = ViewGroup.LayoutParams.MATCH_PARENT
+        when (tag) {
+            "FillMaxSize" -> {
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+                lp.height = ViewGroup.LayoutParams.MATCH_PARENT
+            }
+            "WrapContent" -> {
+                lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+            "Width" -> lp.width = m.optInt("0")
+            "Height" -> lp.height = m.optInt("0")
+            "Padding" -> {
+                val p = m.optInt("0")
+                view.setPadding(p, p, p, p)
+            }
+            "Center" -> if (view is LinearLayout) view.gravity = Gravity.CENTER
         }
         view.layoutParams = lp
     }

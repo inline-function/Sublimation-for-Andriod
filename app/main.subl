@@ -1,22 +1,26 @@
 // main.subl —— Sublimation for Android 示例应用
 // 按 android doc/安卓标准库.md：活动生命周期 + 声明式布局 DSL
-
+@impure
 fun main(): Null {
-    unchecked onCreate {
+    onCreate {
         unchecked log("Sublimation app started", 2)
     }
-    unchecked onStart(fun(): Null {
-        unchecked layout(content)
-    })
+    onStart {
+        layout(content)
+    }
 }
 
-@composable fun content(_e: Any): Box =
-    Box(modifier = Modifier("fillMaxSize"), contentAlignment = Alignment(0)) {
+@composable
+fun content(_e: Any): Box =
+    Box(
+        modifier = fillMaxSize(),
+        contentAlignment = Center()
+    ) {
         Button(onClick = onClicked) {
             Text(text = "Hello Sublimation")
         }
     }
-
+@impure
 fun onClicked(_e: Any): Null {
-    unchecked toast("clicked!", false)
+    toast("clicked!")
 }

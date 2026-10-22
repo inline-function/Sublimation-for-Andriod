@@ -1,13 +1,6 @@
-// android/ui/Alignment.subl —— 对齐常量（android doc/安卓标准库.md §布局）
+// android/ui/Alignment.subl —— 对齐（android doc/安卓标准库.md §布局）
 //
-// contentAlignment 的取值。整型 value 由 KT 端解析为原生 Gravity。
+// contentAlignment 的取值：enum 构造子（编译期 类型安全），由 KT 端解析为原生 Gravity。
 
-struct Alignment(value: Int = 0)
+enum Alignment { Center(), TopStart(), BottomEnd(), CenterStart(), CenterEnd(), Top(), Bottom() }
 
-fun Center(): Alignment = Alignment(0)
-fun TopStart(): Alignment = Alignment(1)
-fun BottomEnd(): Alignment = Alignment(2)
-fun CenterStart(): Alignment = Alignment(3)
-fun CenterEnd(): Alignment = Alignment(4)
-fun Top(): Alignment = Alignment(5)
-fun Bottom(): Alignment = Alignment(6)

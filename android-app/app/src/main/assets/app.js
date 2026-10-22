@@ -32,73 +32,67 @@ try{__dshBoot();}catch(e){}
         if (kind === "log") console.log(...args);
         return null;
       };
-  const Alignment = (value = 0) => ({ tag: "Alignment", value: value });
-  function Center() {
-    return Alignment(0);
-  }
-  function TopStart() {
-    return Alignment(1);
-  }
-  function BottomEnd() {
-    return Alignment(2);
-  }
-  function CenterStart() {
-    return Alignment(3);
-  }
-  function CenterEnd() {
-    return Alignment(4);
-  }
-  function Top() {
-    return Alignment(5);
-  }
-  function Bottom() {
-    return Alignment(6);
-  }
-  const Box = (modifier = Modifier(""), contentAlignment = Alignment(0), body = () => {
+  function Alignment__Center() { return { tag: "Center" }; }
+  const Center = Alignment__Center;
+  function Alignment__TopStart() { return { tag: "TopStart" }; }
+  const TopStart = Alignment__TopStart;
+  function Alignment__BottomEnd() { return { tag: "BottomEnd" }; }
+  const BottomEnd = Alignment__BottomEnd;
+  function Alignment__CenterStart() { return { tag: "CenterStart" }; }
+  const CenterStart = Alignment__CenterStart;
+  function Alignment__CenterEnd() { return { tag: "CenterEnd" }; }
+  const CenterEnd = Alignment__CenterEnd;
+  function Alignment__Top() { return { tag: "Top" }; }
+  const Top = Alignment__Top;
+  function Alignment__Bottom() { return { tag: "Bottom" }; }
+  const Bottom = Alignment__Bottom;
+  const Box = (modifier = Plain(), contentAlignment = Center(), body = () => {
   return null;
 }, children = "", recomposion = (_) => {}) => ({ tag: "Box", modifier: modifier, contentAlignment: contentAlignment, body: body, children: children, recomposion: recomposion });
-  const Button = (modifier = Modifier(""), enabled = true, onClick = (_) => {
+  const Button = (modifier = Plain(), enabled = true, onClick = (_) => {
   return null;
 }, body = () => {
   return null;
 }, children = "", recomposion = (_) => {}) => ({ tag: "Button", modifier: modifier, enabled: enabled, onClick: onClick, body: body, children: children, recomposion: recomposion });
-  const Modifier = (modifier = "") => ({ tag: "Modifier", modifier: modifier });
+  function Modifier__Plain() { return { tag: "Plain" }; }
+  const Plain = Modifier__Plain;
+  function Modifier__FillMaxSize() { return { tag: "FillMaxSize" }; }
+  const FillMaxSize = Modifier__FillMaxSize;
+  function Modifier__WrapContent() { return { tag: "WrapContent" }; }
+  const WrapContent = Modifier__WrapContent;
+  function Modifier__Padding(a0) { return { tag: "Padding", 0: a0 }; }
+  const Padding = Modifier__Padding;
+  function Modifier__Width(a0) { return { tag: "Width", 0: a0 }; }
+  const Width = Modifier__Width;
+  function Modifier__Height(a0) { return { tag: "Height", 0: a0 }; }
+  const Height = Modifier__Height;
   function fillMaxSize() {
-    return Modifier("fillMaxSize");
+    return FillMaxSize();
   }
   function wrapContent() {
-    return Modifier("wrapContent");
+    return WrapContent();
   }
   function padding(n) {
-    return Modifier("padding");
+    return Padding(n);
   }
   function width(n) {
-    return Modifier("width");
+    return Width(n);
   }
   function height(n) {
-    return Modifier("height");
+    return Height(n);
   }
-  function center() {
-    return Modifier("center");
-  }
-  const Text = (text = "", modifier = Modifier(""), children = "", recomposion = (_) => {}) => ({ tag: "Text", text: text, modifier: modifier, children: children, recomposion: recomposion });
+  const Text = (text = "", modifier = Plain(), children = "", recomposion = (_) => {}) => ({ tag: "Text", text: text, modifier: modifier, children: children, recomposion: recomposion });
   async function main() {
-    // unchecked
-    (__dshLifecycle_onCreate = ((_) => {
+    (globalThis.__dshLifecycle_onCreate = ((_) => {
   __dshAndroid("log", ["Sublimation app started", 2]);
 }), __dshAndroid("registerLifecycle", ["onCreate"]));
-    // unchecked
-    (__dshLifecycle_onStart = (() => {
-  (function(f){ return __dshAndroid("layout", [JSON.stringify(f(null))]); })(content);
-  return null;
-}), __dshAndroid("registerLifecycle", ["onStart"]));
+    (globalThis.__dshLifecycle_onStart = ((_) => (function(f){ return __dshAndroid("layout", [JSON.stringify(f(null))]); })(content)), __dshAndroid("registerLifecycle", ["onStart"]));
     return null;
   }
   function content(_e) {
-    return Box(Modifier("fillMaxSize"), Alignment(0), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = (onClicked), "Button_onClick_1"), undefined, [Text("Hello Sublimation", undefined, [], recomposion$Text$1)], recomposion$Button$1)], recomposion$Box$1);
+    return Box(fillMaxSize(), Center(), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = (onClicked), "Button_onClick_1"), undefined, [Text("Hello Sublimation", undefined, [], recomposion$Text$1)], recomposion$Button$1)], recomposion$Box$1);
   }
   function onClicked(_e) {
-    // unchecked
     __dshAndroid("toast", ["clicked!", false]);
     return null;
   }

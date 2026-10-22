@@ -4,7 +4,7 @@
 // onClick 是点击事件回调——KT 端注入监听器，触发时回调 JS 端注册的 lambda。
 
 @view struct Button(
-    modifier: Modifier = Modifier(""),
+    modifier: Modifier = Plain(),
     enabled: Bool = true,
     onClick: (Any) => Null = fun(_: Any): Null { null },
     body: () => Null = fun(): Null { null }

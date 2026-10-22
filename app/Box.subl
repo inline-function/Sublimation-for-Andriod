@@ -4,7 +4,7 @@
 // recomposion 属性由 @view 处理器注入：视图被修改时带上修改后的副本回调 KT 端。
 
 @view struct Box(
-    modifier: Modifier = Modifier(""),
-    contentAlignment: Alignment = Alignment(0),
+    modifier: Modifier = Plain(),
+    contentAlignment: Alignment = Center(),
     body: () => Null = fun(): Null { null }
 )

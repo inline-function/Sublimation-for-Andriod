@@ -2,5 +2,5 @@
 
 @view struct Text(
     text: Str = "",
-    modifier: Modifier = Modifier("")
+    modifier: Modifier = Plain()
 )
