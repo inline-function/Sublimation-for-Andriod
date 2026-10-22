@@ -1,6 +1,7 @@
 # Gradle files
 .gradle/
 build/
+!sdk-lite/build/
 .kotlin/
 
 # Local configuration file (sdk path, etc)
