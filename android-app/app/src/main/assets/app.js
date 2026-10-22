@@ -53,14 +53,22 @@ try{__dshBoot();}catch(e){}
   const Top = Alignment__Top;
   function Alignment__Bottom() { return { tag: "Bottom" }; }
   const Bottom = Alignment__Bottom;
-  const Box = (modifier = Plain(), contentAlignment = Center(), body = () => {
+  const Box = (modifier = Plain(), contentAlignment = Center(), orientation = "vertical", backgroundColor = "", body = () => {
   return null;
-}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Box", modifier: modifier, contentAlignment: contentAlignment, body: body, children: children, recomposion: recomposion, __ord: __ord });
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Box", modifier: modifier, contentAlignment: contentAlignment, orientation: orientation, backgroundColor: backgroundColor, body: body, children: children, recomposion: recomposion, __ord: __ord });
   const Button = (modifier = Plain(), enabled = true, onClick = (_) => {
   return null;
 }, body = () => {
   return null;
 }, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Button", modifier: modifier, enabled: enabled, onClick: onClick, body: body, children: children, recomposion: recomposion, __ord: __ord });
+  const Checkbox = (checked = false, text = "", onToggle = (b) => {
+  return null;
+}, modifier = Plain(), body = () => {
+  return null;
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Checkbox", checked: checked, text: text, onToggle: onToggle, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
+  const Image = (name = "", modifier = Plain(), body = () => {
+  return null;
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Image", name: name, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
   function Modifier__Plain() { return { tag: "Plain" }; }
   const Plain = Modifier__Plain;
   function Modifier__FillMaxSize() { return { tag: "FillMaxSize" }; }
@@ -88,7 +96,25 @@ try{__dshBoot();}catch(e){}
   function height(n) {
     return Height(n);
   }
-  const Text = (text = "", modifier = Plain(), children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Text", text: text, modifier: modifier, children: children, recomposion: recomposion, __ord: __ord });
+  const Progress = (value = 0, indeterminate = false, modifier = Plain(), body = () => {
+  return null;
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Progress", value: value, indeterminate: indeterminate, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
+  const Slider = (value = 0.0, from = 0.0, to = 1.0, enabled = true, onChange = (v) => {
+  return null;
+}, modifier = Plain(), body = () => {
+  return null;
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Slider", value: value, from: from, to: to, enabled: enabled, onChange: onChange, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
+  const Switch = (checked = false, enabled = true, onToggle = (b) => {
+  return null;
+}, modifier = Plain(), body = () => {
+  return null;
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Switch", checked: checked, enabled: enabled, onToggle: onToggle, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
+  const Text = (text = "", color = "", size = 0.0, bold = false, italic = false, maxLines = 0, modifier = Plain(), children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Text", text: text, color: color, size: size, bold: bold, italic: italic, maxLines: maxLines, modifier: modifier, children: children, recomposion: recomposion, __ord: __ord });
+  const TextField = (placeholder = "", text = "", keyboard = "text", onChange = (t) => {
+  return null;
+}, modifier = Plain(), body = () => {
+  return null;
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "TextField", placeholder: placeholder, text: text, keyboard: keyboard, onChange: onChange, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
   async function main() {
     (globalThis.__dshLifecycle_onCreate = ((_) => {
   __dshAndroid("log", ["Sublimation app started", 2]);
@@ -98,14 +124,59 @@ try{__dshBoot();}catch(e){}
   }
   function content(_e) {
     let n = 0;
-    let label = Text("count: 0", undefined, [], recomposion$Text$1, 1);
-    return Box(Plain(), Center(), undefined, [Box(Plain(), Center(), undefined, [Text("不变的视图", undefined, [], recomposion$Text$2, 2)], recomposion$Box$2, 2), Box(Plain(), Center(), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = ((_) => {
+    let label = Text("count: 0", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$1, 1);
+    let name = Text("待输入", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$2, 2);
+    let sval = Text("slider: 0.50", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$3, 3);
+    let tint = Text("开关：关", "#888888", undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$4, 4);
+    let cbox = Text("复选框", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$5, 5);
+    return Box(Plain(), Center(), undefined, undefined, undefined, [Box(Plain(), undefined, undefined, undefined, undefined, [Text("不变的视图", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$6, 6)], recomposion$Box$2, 2), Box(Plain(), undefined, undefined, undefined, undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = ((_) => {
   n = (n + 1);
   (() => { const __c = __dc(label); __c.text = ("count: " + __dshtoStr(n)); __c.recomposion(__c); })();
-}), "Button_onClick_1"), undefined, [label], recomposion$Button$1, 1)], recomposion$Box$3, 3)], recomposion$Box$1, 1);
+}), "Button_onClick_1"), undefined, [label], recomposion$Button$1, 1)], recomposion$Box$3, 3), Box(Plain(), undefined, undefined, undefined, undefined, [TextField("输入名字", undefined, undefined, (globalThis.__dshFn_TextField_onChange_2 = ((t) => {
+  (() => { const __c = __dc(name); __c.text = t; __c.recomposion(__c); })();
+}), "TextField_onChange_2"), undefined, undefined, [], recomposion$TextField$1, 1)], recomposion$Box$4, 4), Box(Plain(), undefined, "horizontal", undefined, undefined, [Text("屏幕常亮", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$7, 7), Switch(undefined, undefined, (globalThis.__dshFn_Switch_onToggle_3 = ((b) => {
+  __dshAndroid("keepScreenOn", [b]);
+  (() => { const __c = __dc(tint); __c.text = (b ? (() => {
+  return "开关：开";
+})() : (() => {
+  return "开关：关";
+})()); __c.recomposion(__c); })();
+}), "Switch_onToggle_3"), undefined, undefined, [], recomposion$Switch$1, 1)], recomposion$Box$5, 5), Box(Plain(), undefined, undefined, undefined, undefined, [tint], recomposion$Box$6, 6), Box(Plain(), undefined, "horizontal", undefined, undefined, [cbox, Checkbox(true, undefined, (globalThis.__dshFn_Checkbox_onToggle_4 = ((b) => {
+  (() => { const __c = __dc(cbox); __c.text = (b ? (() => {
+  return "复选框：已选";
+})() : (() => {
+  return "复选框";
+})()); __c.recomposion(__c); })();
+}), "Checkbox_onToggle_4"), undefined, undefined, [], recomposion$Checkbox$1, 1)], recomposion$Box$7, 7), Box(Plain(), undefined, undefined, undefined, undefined, [Slider(0.5, 0.0, 1.0, undefined, (globalThis.__dshFn_Slider_onChange_5 = ((v) => {
+  (() => { const __c = __dc(sval); __c.text = ("slider: " + __dshtoStr(v)); __c.recomposion(__c); })();
+}), "Slider_onChange_5"), undefined, undefined, [], recomposion$Slider$1, 1)], recomposion$Box$8, 8), Box(Plain(), undefined, undefined, undefined, undefined, [sval], recomposion$Box$9, 9), Box(Plain(), undefined, undefined, undefined, undefined, [name], recomposion$Box$10, 10), Box(Plain(), undefined, "horizontal", undefined, undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_6 = ((_) => {
+  __dshAndroid("shareText", [("你好，我是 " + name.text)]);
+}), "Button_onClick_6"), undefined, [Text("分享", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$8, 8)], recomposion$Button$2, 2), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_7 = ((_) => {
+  __dshAndroid("openUrl", ["https://dsh.so"]);
+}), "Button_onClick_7"), undefined, [Text("打开网页", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$9, 9)], recomposion$Button$3, 3), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_8 = ((_) => {
+  __dshAndroid("vibrate", [60]);
+}), "Button_onClick_8"), undefined, [Text("震动", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$10, 10)], recomposion$Button$4, 4), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_9 = ((_) => {
+  __dshAndroid("clipboardSet", [name.text]);
+  __dshAndroid("toast", ["已复制", false]);
+}), "Button_onClick_9"), undefined, [Text("复制", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$11, 11)], recomposion$Button$5, 5), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_10 = ((_) => {
+  __dshAndroid("storagePut", ["name", name.text]);
+  __dshAndroid("toast", ["已保存", false]);
+}), "Button_onClick_10"), undefined, [Text("保存", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$12, 12)], recomposion$Button$6, 6)], recomposion$Box$11, 11), Box(Plain(), undefined, "horizontal", undefined, undefined, [Progress(70, undefined, undefined, undefined, [], recomposion$Progress$1, 1), Image("android:ic_menu_info_details", undefined, undefined, [], recomposion$Image$1, 1)], recomposion$Box$12, 12)], recomposion$Box$1, 1);
   }
   function recomposion$Text$1(v) {
     return __dshAndroid("androidRecompose", ["Text", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Text$2(v) {
+    return __dshAndroid("androidRecompose", ["Text", 2, JSON.stringify(v)]);
+  }
+  function recomposion$Text$3(v) {
+    return __dshAndroid("androidRecompose", ["Text", 3, JSON.stringify(v)]);
+  }
+  function recomposion$Text$4(v) {
+    return __dshAndroid("androidRecompose", ["Text", 4, JSON.stringify(v)]);
+  }
+  function recomposion$Text$5(v) {
+    return __dshAndroid("androidRecompose", ["Text", 5, JSON.stringify(v)]);
   }
   function recomposion$Box$1(v) {
     return __dshAndroid("androidRecompose", ["Box", 1, JSON.stringify(v)]);
@@ -113,14 +184,92 @@ try{__dshBoot();}catch(e){}
   function recomposion$Box$2(v) {
     return __dshAndroid("androidRecompose", ["Box", 2, JSON.stringify(v)]);
   }
-  function recomposion$Text$2(v) {
-    return __dshAndroid("androidRecompose", ["Text", 2, JSON.stringify(v)]);
+  function recomposion$Text$6(v) {
+    return __dshAndroid("androidRecompose", ["Text", 6, JSON.stringify(v)]);
   }
   function recomposion$Box$3(v) {
     return __dshAndroid("androidRecompose", ["Box", 3, JSON.stringify(v)]);
   }
   function recomposion$Button$1(v) {
     return __dshAndroid("androidRecompose", ["Button", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Box$4(v) {
+    return __dshAndroid("androidRecompose", ["Box", 4, JSON.stringify(v)]);
+  }
+  function recomposion$TextField$1(v) {
+    return __dshAndroid("androidRecompose", ["TextField", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Box$5(v) {
+    return __dshAndroid("androidRecompose", ["Box", 5, JSON.stringify(v)]);
+  }
+  function recomposion$Text$7(v) {
+    return __dshAndroid("androidRecompose", ["Text", 7, JSON.stringify(v)]);
+  }
+  function recomposion$Switch$1(v) {
+    return __dshAndroid("androidRecompose", ["Switch", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Box$6(v) {
+    return __dshAndroid("androidRecompose", ["Box", 6, JSON.stringify(v)]);
+  }
+  function recomposion$Box$7(v) {
+    return __dshAndroid("androidRecompose", ["Box", 7, JSON.stringify(v)]);
+  }
+  function recomposion$Checkbox$1(v) {
+    return __dshAndroid("androidRecompose", ["Checkbox", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Box$8(v) {
+    return __dshAndroid("androidRecompose", ["Box", 8, JSON.stringify(v)]);
+  }
+  function recomposion$Slider$1(v) {
+    return __dshAndroid("androidRecompose", ["Slider", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Box$9(v) {
+    return __dshAndroid("androidRecompose", ["Box", 9, JSON.stringify(v)]);
+  }
+  function recomposion$Box$10(v) {
+    return __dshAndroid("androidRecompose", ["Box", 10, JSON.stringify(v)]);
+  }
+  function recomposion$Box$11(v) {
+    return __dshAndroid("androidRecompose", ["Box", 11, JSON.stringify(v)]);
+  }
+  function recomposion$Button$2(v) {
+    return __dshAndroid("androidRecompose", ["Button", 2, JSON.stringify(v)]);
+  }
+  function recomposion$Text$8(v) {
+    return __dshAndroid("androidRecompose", ["Text", 8, JSON.stringify(v)]);
+  }
+  function recomposion$Button$3(v) {
+    return __dshAndroid("androidRecompose", ["Button", 3, JSON.stringify(v)]);
+  }
+  function recomposion$Text$9(v) {
+    return __dshAndroid("androidRecompose", ["Text", 9, JSON.stringify(v)]);
+  }
+  function recomposion$Button$4(v) {
+    return __dshAndroid("androidRecompose", ["Button", 4, JSON.stringify(v)]);
+  }
+  function recomposion$Text$10(v) {
+    return __dshAndroid("androidRecompose", ["Text", 10, JSON.stringify(v)]);
+  }
+  function recomposion$Button$5(v) {
+    return __dshAndroid("androidRecompose", ["Button", 5, JSON.stringify(v)]);
+  }
+  function recomposion$Text$11(v) {
+    return __dshAndroid("androidRecompose", ["Text", 11, JSON.stringify(v)]);
+  }
+  function recomposion$Button$6(v) {
+    return __dshAndroid("androidRecompose", ["Button", 6, JSON.stringify(v)]);
+  }
+  function recomposion$Text$12(v) {
+    return __dshAndroid("androidRecompose", ["Text", 12, JSON.stringify(v)]);
+  }
+  function recomposion$Box$12(v) {
+    return __dshAndroid("androidRecompose", ["Box", 12, JSON.stringify(v)]);
+  }
+  function recomposion$Progress$1(v) {
+    return __dshAndroid("androidRecompose", ["Progress", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Image$1(v) {
+    return __dshAndroid("androidRecompose", ["Image", 1, JSON.stringify(v)]);
   }
   const dict_core_collection_Functor_List = {
     map: (d, fa, f) => (() => {

@@ -12,14 +12,62 @@ fun main(): Null {
 fun content(_e: Any): Box {
     @mut var n = 0
     @mut var label = Text(text = "count: 0")
+    @mut var name = Text(text = "待输入")
+    @mut var sval = Text(text = "slider: 0.50")
+    @mut var tint = Text(text = "开关：关", color = "#888888")
+@mut var cbox = Text(text = "复选框")
     return Box(modifier = Plain(), contentAlignment = Center()) {
-        Box(modifier = Plain(), contentAlignment = Center()) {
+        Box(modifier = Plain()) {
             Text(text = "不变的视图")
         }
-        Box(modifier = Plain(), contentAlignment = Center()) {
+        Box(modifier = Plain()) {
             Button(onClick = { n = n + 1; label.text = concat("count: ", toStr(n)) }) {
                 label
             }
+        }
+        Box(modifier = Plain()) {
+            TextField(placeholder = "输入名字", onChange = { t => name.text = t })
+        }
+        Box(modifier = Plain(), orientation = "horizontal") {
+            Text(text = "屏幕常亮")
+            Switch(onToggle = { b => unchecked keepScreenOn(b); tint.text = if (b) "开关：开" else "开关：关" })
+        }
+        Box(modifier = Plain()) {
+            tint
+        }
+        Box(modifier = Plain(), orientation = "horizontal") {
+            cbox
+            Checkbox(checked = true, onToggle = { b => cbox.text = if (b) "复选框：已选" else "复选框" })
+        }
+        Box(modifier = Plain()) {
+            Slider(value = 0.5, from = 0.0, to = 1.0, onChange = { v => sval.text = concat("slider: ", toStr(v)) })
+        }
+        Box(modifier = Plain()) {
+            sval
+        }
+        Box(modifier = Plain()) {
+            name
+        }
+        Box(modifier = Plain(), orientation = "horizontal") {
+            Button(onClick = { unchecked shareText(concat("你好，我是 ", name.text)) }) {
+                Text(text = "分享")
+            }
+            Button(onClick = { unchecked openUrl("https://dsh.so") }) {
+                Text(text = "打开网页")
+            }
+            Button(onClick = { unchecked vibrate(60) }) {
+                Text(text = "震动")
+            }
+            Button(onClick = { unchecked clipboardSet(name.text); unchecked toast("已复制", false) }) {
+                Text(text = "复制")
+            }
+            Button(onClick = { unchecked storagePut("name", name.text); unchecked toast("已保存", false) }) {
+                Text(text = "保存")
+            }
+        }
+        Box(modifier = Plain(), orientation = "horizontal") {
+            Progress(value = 70)
+            Image(name = "android:ic_menu_info_details")
         }
     }
 }

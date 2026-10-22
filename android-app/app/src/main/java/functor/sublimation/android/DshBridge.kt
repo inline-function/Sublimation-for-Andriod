@@ -1,38 +1,62 @@
 package functor.sublimation.android
 
-import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.materialswitch.MaterialSwitch
+import com.google.android.material.slider.Slider
 import org.json.JSONArray
 import org.json.JSONObject
 /**
- * JS-KT 通信桥（WebView JavascriptInterface 注入为 __dshAndroid）。
- * JS 端调用 __dshAndroid(kind, argsJson)。KT 端原生执行后返回 JSON。
+ * JS-KT 通信桥（WebView JavascriptInterface 注入为 __dshAndroid，prompt 通道兜底）。
+ *
+ * 桥能力（android doc/安卓标准库.md）：
+ *   - 基础：log/toast/layout/7 个生命周期/androidRecompose（增量重组）；
+ *   - 意图（intent.subl）：openUrl/shareText/dial/sms/openSettings/launchApp；
+ *   - 平台能力（platform.subl）：clipboard/storage（持久化）/keepScreenOn/vibrate/
+ *     screenW/H/D/installedApps/pickFile（异步：系统选择器 → __dshFn 回调）；
+ *   - 值返回型内建（Nat/Bool/List[Str]）返回 JSON 字符串（JS 端 JSON.parse），
+ *     Str 型返回原文（prompt 与 JavascriptInterface 通道一致）。
  *
  * 增量重组：layout / androidRecompose 都按「新旧 JSON 树深比较」只更新变化的子树，
  * 相等的视图原样保留（不重建——其状态、监听器、布局参数全部保持）。
- * 频繁重组只改几个小视图时，绝大多数子树在 jsonEquals 处短路，原生重建量 ≈ 变化量。
  */
 class DshBridge(private val activity: MainActivity) {
     private val tag = "Sublimation"
     private val lifecycleCallbacks = mutableSetOf<String>()
     private val firedEvents = mutableSetOf<String>()
+    // lazy：DshBridge 在 Activity 字段初始化期构造（此时 base context 尚未 attach），故延后取
+    private val prefs by lazy { activity.getSharedPreferences("dsh-storage", 0) }
 
     @android.webkit.JavascriptInterface
     fun dispatch(kind: String, argsJson: String): String {
-        return try { handle(kind, argsJson); "null" } catch (t: Throwable) {
+        return try { handle(kind, argsJson) } catch (t: Throwable) {
             Log.e(tag, "bridge error [" + kind + "]: " + t.message); "null"
         }
     }
 
-    private fun handle(kind: String, argsJson: String) {
+    private fun handle(kind: String, argsJson: String): String {
         val args = if (argsJson.isEmpty() || argsJson == "null") emptyList<Any?>()
             else parseJsonArray(argsJson)
         when (kind) {
@@ -54,12 +78,12 @@ class DshBridge(private val activity: MainActivity) {
                 }
             }
             "registerLifecycle" -> {
-                val event = args.getOrNull(0)?.toString() ?: return
+                val event = args.getOrNull(0)?.toString() ?: return "null"
                 lifecycleCallbacks += event
                 if (event in firedEvents) dispatchLater(event)
             }
             "layout" -> {
-                val viewJson = args.getOrNull(0)?.toString() ?: return
+                val viewJson = args.getOrNull(0)?.toString() ?: return "null"
                 val root = JSONObject(viewJson)
                 val old = rootJson
                 rootJson = root
@@ -69,22 +93,137 @@ class DshBridge(private val activity: MainActivity) {
                 }
             }
             "androidRecompose" -> {
-                // 重组：JS 端把修改好的视图副本传来（tag + 序号）。先在 JSON 树里替换，
-                // 再对新旧两棵树跑增量 diff——只有变化的子树触发原生重建。
-                val viewJson = args.getOrNull(2)?.toString() ?: return
-                val kind = args.getOrNull(0)?.toString() ?: return
+                val viewJson = args.getOrNull(2)?.toString() ?: return "null"
+                val rkind = args.getOrNull(0)?.toString() ?: return "null"
                 val ord = (args.getOrNull(1) as? Number)?.toInt() ?: 1
-                val rj = rootJson ?: return
-                val old = JSONObject(rj.toString())   // 旧树快照（diff 基准）
-                if (!replaceNode(rj, kind, ord, JSONObject(viewJson))) {
-                    Log.w(tag, "recompose 定位失败: " + kind + "#" + ord)
-                    return
+                val rj = rootJson ?: return "null"
+                val old = JSONObject(rj.toString())
+                if (!replaceNode(rj, rkind, ord, JSONObject(viewJson))) {
+                    Log.w(tag, "recompose 定位失败: " + rkind + "#" + ord)
+                    return "null"
                 }
-                if (jsonEquals(old, rj)) return   // JS 什么也没改成：原生视图一字不动
+                if (jsonEquals(old, rj)) return "null"
                 activity.runOnUiThread { applyRootDiff(old, rj) }
+            }
+            // ---------------- 意图（intent.subl） ----------------
+            "openUrl" -> {
+                val url = args.getOrNull(0)?.toString() ?: return "null"
+                ui {
+                    try { activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                    catch (t: Throwable) { toastFail("无法打开链接：" + t.message) }
+                }
+            }
+            "shareText" -> {
+                val text = args.getOrNull(0)?.toString() ?: return "null"
+                ui {
+                    try {
+                        val it = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text)
+                        }
+                        activity.startActivity(Intent.createChooser(it, "分享"))
+                    } catch (t: Throwable) { toastFail("无法分享：" + t.message) }
+                }
+            }
+            "dial" -> {
+                val phone = args.getOrNull(0)?.toString() ?: return "null"
+                ui {
+                    try { activity.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phone))) }
+                    catch (t: Throwable) { toastFail("无法拨号：" + t.message) }
+                }
+            }
+            "sms" -> {
+                val phone = args.getOrNull(0)?.toString() ?: return "null"
+                ui {
+                    try {
+                        val it = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + phone))
+                        activity.startActivity(it)
+                    } catch (t: Throwable) { toastFail("无法发短信：" + t.message) }
+                }
+            }
+            "openSettings" -> {
+                ui {
+                    try {
+                        val it = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        it.data = Uri.parse("package:" + activity.packageName)
+                        activity.startActivity(it)
+                    } catch (t: Throwable) { toastFail("无法打开设置：" + t.message) }
+                }
+            }
+            "launchApp" -> {
+                val pkg = args.getOrNull(0)?.toString() ?: return "null"
+                ui {
+                    val it = activity.packageManager.getLaunchIntentForPackage(pkg)
+                    if (it != null) {
+                        try { activity.startActivity(it) } catch (t: Throwable) { toastFail("无法启动：" + pkg) }
+                    } else toastFail("应用未安装：" + pkg)
+                }
+            }
+            // ---------------- 平台能力（platform.subl） ----------------
+            "clipboardSet" -> {
+                val text = args.getOrNull(0)?.toString() ?: ""
+                val cm = activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("text", text))
+            }
+            "clipboardGet" -> {
+                val cm = activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = cm.primaryClip
+                return if (clip != null && clip.itemCount > 0) clip.getItemAt(0).text.toString() else ""
+            }
+            "storagePut" -> {
+                val key = args.getOrNull(0)?.toString() ?: return "null"
+                val value = args.getOrNull(1)?.toString() ?: ""
+                prefs.edit().putString(key, value).apply()
+            }
+            "storageGet" -> {
+                val key = args.getOrNull(0)?.toString() ?: return "null"
+                return prefs.getString(key, "") ?: ""
+            }
+            "keepScreenOn" -> {
+                val on = (args.getOrNull(0) as? Boolean) == true
+                ui { activity.web.keepScreenOn = on }
+            }
+            "vibrate" -> {
+                val ms = (args.getOrNull(0) as? Number)?.toInt() ?: 30
+                val vb = activity.getSystemService(android.content.Context.VIBRATOR_SERVICE) as Vibrator
+                try {
+                    if (Build.VERSION.SDK_INT >= 26) vb.vibrate(VibrationEffect.createOneShot(ms.toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
+                    else @Suppress("DEPRECATION") vb.vibrate(ms.toLong())
+                } catch (t: Throwable) { Log.w(tag, "vibrate: " + t.message) }
+            }
+            "screenWidth" -> return activity.resources.displayMetrics.widthPixels.toString()
+            "screenHeight" -> return activity.resources.displayMetrics.heightPixels.toString()
+            "screenDensity" -> return activity.resources.displayMetrics.densityDpi.toString()
+            "installedApps" -> {
+                val apps = activity.packageManager.getInstalledApplications(0)
+                val arr = JSONArray()
+                for (i in 0 until apps.size) arr.put(apps[i].packageName)
+                return arr.toString()
+            }
+            "pickFile" -> {
+                // 异步：系统选择器返回后经 evaluateJavascript 回调 JS 闭包（key 由编译器分配）
+                val mime = args.getOrNull(0)?.toString() ?: "*/*"
+                val key = args.getOrNull(1)?.toString() ?: return "null"
+                activity.pendingPickKey = key
+                ui {
+                    try {
+                        if (mime == "") activity.pickLauncher.launch("*/*")
+                        else activity.pickLauncher.launch(mime)
+                    } catch (t: Throwable) {
+                        activity.pendingPickKey = null
+                        toastFail("无法选取文件：" + t.message)
+                    }
+                }
             }
             else -> Log.w(tag, "unknown bridge kind: " + kind)
         }
+        return "null"
+    }
+
+    private fun ui(f: () -> Unit) { activity.runOnUiThread(f) }
+    private fun toastFail(msg: String) { Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show() }
+    private fun jsCallback(key: String, argJs: String) {
+        activity.web.evaluateJavascript(
+            "try{ globalThis.__dshFn_" + key + "(" + argJs + "); }catch(e){ console.log(e); }", null)
     }
 
     fun dispatchLifecycle(event: String) {
@@ -98,7 +237,6 @@ class DshBridge(private val activity: MainActivity) {
                 "try{ __dshLifecycle_" + event + "(); }catch(e){ console.log(e); }", null)
         }
     }
-
     // ---------------- 增量重组（diff） ----------------
 
     /** 当前视图树的 JSON（layout 写入；recompose 在树上原地替换节点）。 */
@@ -125,7 +263,6 @@ class DshBridge(private val activity: MainActivity) {
             setRootView(buildView(nw.toString()))
             return
         }
-        // 根为 Box 且自身字段相同：children 逐个增量。
         val oldCh = old.optJSONArray("children")
         val newCh = nw.optJSONArray("children")
         val group = rv as? ViewGroup
@@ -141,12 +278,6 @@ class DshBridge(private val activity: MainActivity) {
         }
     }
 
-    /**
-     * 单个子树的增量：
-     * - jsonEquals → 跳过（该视图完全保留——状态/监听器不重建）
-     * - tag 变了 / 非 Box 节点有变化 / 结构改变 → 该子树重建（remove + add 同位置）
-     * - Box 且自身字段相同 → 继续向下逐子树增量
-     */
     private fun applyChildDiff(old: JSONObject, nw: JSONObject, host: ViewGroup, i: Int) {
         if (jsonEquals(old, nw)) return
         val oldTag = old.optString("tag", "")
@@ -170,7 +301,6 @@ class DshBridge(private val activity: MainActivity) {
                 return
             }
         }
-        // 非容器或自身字段变化：重建此子树（子树内部一起重建——Button 的文本子视图不是原生子视图，无法更细)
         rebuild(host, i, nw)
     }
 
@@ -181,11 +311,7 @@ class DshBridge(private val activity: MainActivity) {
         Log.d(tag, "diff: 重建 " + nw.optString("tag", "?") + " 子树")
     }
 
-    /**
-     * 在树中找到 tag 与 __ord 相符的节点并替换。
-     * ord 是视图构造点编号（与 JS 端 recomposion$X$N 的 N 同源、按源码序分配），
-     * 与树 DFS 序不一定一致——必须按节点自带的 __ord 精确定位，不能按出现次序推断。
-     */
+    /** 按 tag + __ord 在树中替换节点（recompose 用）。 */
     private fun replaceNode(node: JSONObject, tag: String, ord: Int, replacement: JSONObject): Boolean {
         val children = node.optJSONArray("children") ?: return false
         for (i in 0 until children.length()) {
@@ -216,7 +342,6 @@ class DshBridge(private val activity: MainActivity) {
         if (ka.size != kb.size || !ka.containsAll(kb)) return false
         return ka.all { jsonEquals(a.opt(it), b.opt(it)) }
     }
-
     // ---------------- 视图构建 ----------------
 
     private fun buildView(json: String): View {
@@ -226,15 +351,20 @@ class DshBridge(private val activity: MainActivity) {
         return when (type) {
             "Box" -> buildBox(node, children)
             "Button" -> buildButton(node, children)
+            "TextField" -> buildTextField(node)
+            "Switch" -> buildSwitch(node)
+            "Checkbox" -> buildCheckbox(node)
+            "Slider" -> buildSlider(node)
+            "Image" -> buildImage(node)
+            "Progress" -> buildProgress(node)
             else -> buildText(node)
         }
     }
 
     private fun buildBox(node: JSONObject, children: JSONArray?): View {
         val ctx = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            // Plain（默认）= 无约束 → WRAP_CONTENT；FillMaxSize() 等枚举由 setModifier 覆盖。
-            // 注意：根 Box 经 setContentView 安装时由内容框架赋予 MATCH/MATCH，不受此默认值影响。
+            orientation = if (node.optString("orientation", "vertical") == "horizontal")
+                LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -251,6 +381,11 @@ class DshBridge(private val activity: MainActivity) {
             else -> Gravity.CENTER
         }
         ctx.gravity = gravity
+        val bg = node.optString("backgroundColor", "")
+        if (bg.isNotEmpty()) {
+            val c = parseColor(bg)
+            if (c != 0) ctx.setBackgroundColor(c)
+        }
         setModifier(ctx, node.opt("modifier"))
         if (children != null) {
             for (i in 0 until children.length()) {
@@ -279,8 +414,132 @@ class DshBridge(private val activity: MainActivity) {
     private fun buildText(node: JSONObject): View {
         val tv = TextView(activity)
         tv.text = node.optString("text", "")
+        val color = node.optString("color", "")
+        if (color.isNotEmpty()) {
+            val c = parseColor(color)
+            if (c != 0) tv.setTextColor(c)
+        }
+        val size = node.optDouble("size", 0.0)
+        if (size > 0) tv.textSize = size.toFloat()
+        val maxLines = node.optInt("maxLines", 0)
+        if (maxLines > 0) tv.maxLines = maxLines
+        if (node.optBoolean("bold", false) || node.optBoolean("italic", false)) {
+            val style = (if (node.optBoolean("bold", false)) 1 else 0) or
+                (if (node.optBoolean("italic", false)) 2 else 0)
+            tv.setTypeface(tv.typeface, style)
+        }
         setModifier(tv, node.opt("modifier"))
         return tv
+    }
+
+    private fun buildTextField(node: JSONObject): View {
+        val et = EditText(activity)
+        et.hint = node.optString("placeholder", "")
+        et.setText(node.optString("text", ""))
+        val kb = node.optString("keyboard", "text")
+        et.inputType = when (kb) {
+            "number" -> InputType.TYPE_CLASS_NUMBER
+            "password" -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            "email" -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            else -> InputType.TYPE_CLASS_TEXT
+        }
+        val onChangeId = node.optString("onChange", "")
+        if (onChangeId.isNotEmpty()) {
+            et.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(s: Editable?) {}
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    // 只回传文本、不重组视图——重组会重建输入框并丢失焦点/光标
+                    jsCallback(onChangeId, JSONObject.quote(s?.toString() ?: ""))
+                }
+            })
+        }
+        setModifier(et, node.opt("modifier"))
+        return et
+    }
+
+    private fun buildSwitch(node: JSONObject): View {
+        val sw = MaterialSwitch(activity)
+        sw.isChecked = node.optBoolean("checked", false)
+        sw.isEnabled = node.optBoolean("enabled", true)
+        val onToggleId = node.optString("onToggle", "")
+        if (onToggleId.isNotEmpty()) {
+            sw.setOnCheckedChangeListener { _, b ->
+                jsCallback(onToggleId, if (b) "true" else "false")
+            }
+        }
+        setModifier(sw, node.opt("modifier"))
+        return sw
+    }
+
+    private fun buildCheckbox(node: JSONObject): View {
+        val cb = MaterialCheckBox(activity)
+        cb.text = node.optString("text", "")
+        cb.isChecked = node.optBoolean("checked", false)
+        val onToggleId = node.optString("onToggle", "")
+        if (onToggleId.isNotEmpty()) {
+            cb.setOnCheckedChangeListener { _, b ->
+                jsCallback(onToggleId, if (b) "true" else "false")
+            }
+        }
+        setModifier(cb, node.opt("modifier"))
+        return cb
+    }
+
+    private fun buildSlider(node: JSONObject): View {
+        val sl = Slider(activity)
+        sl.valueFrom = node.optDouble("from", 0.0).toFloat()
+        sl.valueTo = node.optDouble("to", 1.0).toFloat()
+        // value 必须在 [from, to] 内，先钳制再赋值（JS 侧越界值会导致 IllegalArgumentException）
+        val raw = node.optDouble("value", 0.0).toFloat()
+        var v = raw
+        if (v < sl.valueFrom) v = sl.valueFrom
+        if (v > sl.valueTo) v = sl.valueTo
+        sl.value = v
+        sl.isEnabled = node.optBoolean("enabled", true)
+        val onChangeId = node.optString("onChange", "")
+        if (onChangeId.isNotEmpty()) {
+            sl.addOnChangeListener { _, value, _ ->
+                jsCallback(onChangeId, value.toString())
+            }
+        }
+        setModifier(sl, node.opt("modifier"))
+        return sl
+    }
+
+    private fun buildImage(node: JSONObject): View {
+        val iv = ImageView(activity)
+        val id = resolveDrawable(node.optString("name", ""))
+        if (id != 0) iv.setImageResource(id)
+        setModifier(iv, node.opt("modifier"))
+        return iv
+    }
+
+    private fun buildProgress(node: JSONObject): View {
+        val indet = node.optBoolean("indeterminate", false)
+        val pb = ProgressBar(activity, null,
+            if (indet) android.R.attr.progressBarStyleLarge else android.R.attr.progressBarStyleHorizontal)
+        if (!indet) {
+            pb.max = 100
+            pb.progress = node.optInt("value", 0)
+        }
+        setModifier(pb, node.opt("modifier"))
+        return pb
+    }
+
+    private fun resolveDrawable(name: String): Int {
+        if (name.isEmpty()) return 0
+        return if (name.startsWith("android:")) {
+            activity.resources.getIdentifier(name.substring(8), "drawable", "android")
+        } else {
+            activity.resources.getIdentifier(name, "drawable", activity.packageName)
+        }
+    }
+
+    private fun parseColor(hex: String): Int {
+        return try { Color.parseColor(hex) } catch (t: Throwable) {
+            Log.w(tag, "无效颜色: " + hex); 0
+        }
     }
 
     private fun extractText(children: JSONArray?): String? {
@@ -303,11 +562,11 @@ class DshBridge(private val activity: MainActivity) {
     /** Modifier 枚举（JS 侧 {tag, 0}）→ 原生视图参数。 */
     private fun setModifier(view: View, modifier: Any?) {
         val m = (modifier as? JSONObject) ?: return
-        val tag = m.optString("tag", "Plain")
-        if (tag.isEmpty() || tag == "Plain") return
+        val mtag = m.optString("tag", "Plain")
+        if (mtag.isEmpty() || mtag == "Plain") return
         val lp = view.layoutParams ?: ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        when (tag) {
+        when (mtag) {
             "FillMaxSize" -> {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT
                 lp.height = ViewGroup.LayoutParams.MATCH_PARENT

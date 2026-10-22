@@ -1,51 +1,55 @@
 package functor.sublimation.android
 
-import android.app.Activity
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
-import com.google.android.material.button.MaterialButton
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 /**
  * Sublimation 安卓壳：应用仅由一个活动构成。
  *
+ * 使用 AndroidX 兼容活动（AppCompatActivity）——承载 Material 组件与 Activity Result API。
  * JS 端（编译产物 out.js）跑在 WebView 里，经 [DshBridge]（注入为全局 __dshAndroid）
- * 与 KT 端通信：log/toast/layout/生命周期回调、recomposion 视图更新通知。
- * 布局由 JS 端的 @view 结构体树描述——KT 端用普通 MD 视图（MaterialButton/TextView/
- * LinearLayout）动态构建，不使用 Compose。
+ * 与 KT 端通信：log/toast/layout/生命周期回调、意图、平台能力、recomposion 视图更新通知。
+ * 布局由 JS 端的 @view 结构体树描述——KT 端动态构建原生视图，不使用 Compose。
  */
-class MainActivity : Activity() {
+class MainActivity : AppCompatActivity() {
     private val tag = "Sublimation"
     internal lateinit var web: WebView
     internal val bridge = DshBridge(this)
 
+    /** 文件选取（pickFile）的挂起 JS 回调键；系统选择器返回后回调 JS 闭包。 */
+    internal var pendingPickKey: String? = null
+    internal lateinit var pickLauncher: ActivityResultLauncher<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // WebView 先准备好，JS 端的 onCreate 回调注册要立刻可用
+        // 文件选取：ActivityResultContracts.GetContent——mime 由 JS 端传入。
+        pickLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            val key = pendingPickKey
+            pendingPickKey = null
+            val js = if (key.isNullOrEmpty()) "" else {
+                val arg = if (uri == null) "null" else JSONObject.quote(uri.toString())
+                "try{ globalThis.__dshFn_" + key + "(" + arg + "); }catch(e){ console.log(e); }"
+            }
+            if (js.isNotEmpty()) web.post { web.evaluateJavascript(js, null) }
+        }
+
         web = WebView(this)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
-        web.webChromeClient = WebChromeClient()
-        // 桥注入：JS 端调用 __dshAndroid(kind, args) → KT 端原生执行
-        // 桥注入：JS 端调用 __dshAndroid(kind, args) → KT 端原生执行
-        // 华为 hardened WebView 可能剥掉 addJavascriptInterface——app.js.html 里的
-        // JS 引导在 JS 侧探测到缺失时自动改用 prompt() 传输（onJsPrompt 拦截），两者同义。
         web.addJavascriptInterface(bridge, "__dshAndroid")
-        web.webChromeClient = object : WebChromeClient() {
+        web.setWebChromeClient(object : WebChromeClient() {
             // prompt("dsh:<kind>:<argsJson>") 传输：所有 WebView 通用的兜底通道
+            // （华为 hardened WebView 可能剥掉 addJavascriptInterface）
             override fun onJsPrompt(view: WebView?, url: String?, message: String,
                                     defaultValue: String?, result: JsPromptResult): Boolean {
                 if (message.startsWith("dsh:")) {
@@ -62,8 +66,7 @@ class MainActivity : Activity() {
                                    result: JsResult): Boolean {
                 result.confirm(); return true
             }
-        }
-        // 诊断探针：页面载入完成后看 JS 侧桥是否可用
+        })
         web.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView, url: String) {
                 Log.i(tag, "PAGE-FINISHED " + url)
@@ -77,7 +80,6 @@ class MainActivity : Activity() {
         web.loadUrl("file:///android_asset/app.js.html")
 
         // 载入编译器产物（assets/app.js —— 由注解处理器 postCompile 阶段拷入）
-        // 通知 JS：活动创建（JS 端 onCreate 注册的回调此时触发）
         bridge.dispatchLifecycle("onCreate")
     }
 
