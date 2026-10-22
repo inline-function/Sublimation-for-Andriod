@@ -161,7 +161,11 @@ try{__dshBoot();}catch(e){}
 }), "Button_onClick_9"), undefined, [Text("复制", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$11, 11)], recomposion$Button$5, 5), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_10 = ((_) => {
   __dshAndroid("storagePut", ["name", name.text]);
   __dshAndroid("toast", ["已保存", false]);
-}), "Button_onClick_10"), undefined, [Text("保存", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$12, 12)], recomposion$Button$6, 6)], recomposion$Box$11, 11), Box(Plain(), undefined, "horizontal", undefined, undefined, [Progress(70, undefined, undefined, undefined, [], recomposion$Progress$1, 1), Image("android:ic_menu_info_details", undefined, undefined, [], recomposion$Image$1, 1)], recomposion$Box$12, 12)], recomposion$Box$1, 1);
+}), "Button_onClick_10"), undefined, [Text("保存", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$12, 12)], recomposion$Button$6, 6)], recomposion$Box$11, 11), Box(Plain(), undefined, "horizontal", undefined, undefined, [Progress(70, undefined, undefined, undefined, [], recomposion$Progress$1, 1), Image("android:ic_menu_info_details", undefined, undefined, [], recomposion$Image$1, 1)], recomposion$Box$12, 12), Box(Plain(), undefined, undefined, undefined, undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_11 = ((_) => {
+  (globalThis.__dshFn_android_pickFile_1 = ((p) => {
+  __dshAndroid("toast", [("已选: " + p), true]);
+}), __dshAndroid("pickFile", ["*/*", "android_pickFile_1"]));
+}), "Button_onClick_11"), undefined, [Text("选文件", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$13, 13)], recomposion$Button$7, 7)], recomposion$Box$13, 13)], recomposion$Box$1, 1);
   }
   function recomposion$Text$1(v) {
     return __dshAndroid("androidRecompose", ["Text", 1, JSON.stringify(v)]);
@@ -270,6 +274,15 @@ try{__dshBoot();}catch(e){}
   }
   function recomposion$Image$1(v) {
     return __dshAndroid("androidRecompose", ["Image", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Box$13(v) {
+    return __dshAndroid("androidRecompose", ["Box", 13, JSON.stringify(v)]);
+  }
+  function recomposion$Button$7(v) {
+    return __dshAndroid("androidRecompose", ["Button", 7, JSON.stringify(v)]);
+  }
+  function recomposion$Text$13(v) {
+    return __dshAndroid("androidRecompose", ["Text", 13, JSON.stringify(v)]);
   }
   const dict_core_collection_Functor_List = {
     map: (d, fa, f) => (() => {

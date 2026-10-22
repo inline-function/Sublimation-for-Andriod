@@ -69,5 +69,10 @@ fun content(_e: Any): Box {
             Progress(value = 70)
             Image(name = "android:ic_menu_info_details")
         }
+        Box(modifier = Plain()) {
+            Button(onClick = { unchecked pickFile("*/*", { p => unchecked toast(concat("已选: ", p), true) }) }) {
+                Text(text = "选文件")
+            }
+        }
     }
 }

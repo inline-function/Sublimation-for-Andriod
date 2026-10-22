@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                 val arg = if (uri == null) "null" else JSONObject.quote(uri.toString())
                 "try{ globalThis.__dshFn_" + key + "(" + arg + "); }catch(e){ console.log(e); }"
             }
-            if (js.isNotEmpty()) web.post { web.evaluateJavascript(js, null) }
+            if (js.isNotEmpty()) web.evaluateJavascript(js, null)
         }
 
         web = WebView(this)
