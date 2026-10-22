@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Gradle files
 .gradle/
 build/
@@ -33,3 +34,11 @@ google-services.json
 
 # Android Profiling
 *.hprof
+=======
+# 编译产物（由注解处理器 postCompile 阶段生成）
+app/out.js
+app/build-apk/
+app/probe.png
+app/lc*.txt
+app/screen.png
+>>>>>>> 106525a (Sublimation for Android: 安卓壳 + 安卓标准库 + 注解处理器 + 示例应用)

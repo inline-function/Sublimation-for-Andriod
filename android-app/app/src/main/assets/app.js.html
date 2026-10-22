@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Sublimation</title></head>
+<body>
+  <script>
+    window.onerror = function (msg, src, ln, col) {
+      try { __dshAndroid("log", ["JSERR: " + msg + " @" + ln + ":" + col, 4]); } catch (e) {}
+      return false;
+    };
+    var __origLog = console.log.bind(console);
+    console.log = function () {
+      try { __dshAndroid("log", [Array.prototype.join.call(arguments, " "), 1]); } catch (e) {}
+      __origLog.apply(console, arguments);
+    };
+    try { __dshAndroid("log", ["PAGE-LOADED", 1]); } catch (e) {}
+  </script>
+  <script src="app.js"></script>
+  <script>
+    try { __dshAndroid("log", ["APPJS-LOADED", 1]); } catch (e) {}
+  </script>
+</body>
+</html>

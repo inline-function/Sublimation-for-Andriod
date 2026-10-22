@@ -1,0 +1,6 @@
+// android/Text.subl —— 文本视图（android doc/安卓标准库.md §布局）
+
+@view struct Text(
+    text: Str = "",
+    modifier: Modifier = Modifier("")
+)

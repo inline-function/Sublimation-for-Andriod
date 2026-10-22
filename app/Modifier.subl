@@ -1,0 +1,13 @@
+// android/Modifier.subl —— 修饰符（android doc/安卓标准库.md §布局）
+//
+// Modifier 是视图结构体的通用属性载体：尺寸、对齐等布局意图。
+// 不可变——每次扩展返回新实例（声明式 DSL 风格）。
+
+struct Modifier(modifier: Str = "")
+
+fun fillMaxSize(): Modifier = Modifier("fillMaxSize")
+fun wrapContent(): Modifier = Modifier("wrapContent")
+fun padding(n: Int): Modifier = Modifier("padding")
+fun width(n: Int): Modifier = Modifier("width")
+fun height(n: Int): Modifier = Modifier("height")
+fun center(): Modifier = Modifier("center")
