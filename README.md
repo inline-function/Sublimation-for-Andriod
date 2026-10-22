@@ -15,7 +15,8 @@ KT 端用普通 MD 视图（MaterialButton/TextView/LinearLayout，不使用 Com
 | `annotation processer/` | 安卓注解处理器（`@android` 内建校验、`@view` 视图变换、`@postcompile` APK 构建钩子） |
 | `app/` | 编译输入目录：示例应用（`main.subl`）、安卓标准库（`*.subl`）与 `core/` 标准库副本 |
 | `android-app/` | 壳工程：单活动 + WebView + `DshBridge`（JS-KT 桥），兼容 Gradle 与精简工具链两种构建 |
-| `sdk-lite/` | 精简工具链工作区（aapt2/d8/apksigner/kotlinc，本体为 `AndroidSDK for CandyIDE.zip`，不入库，见 `android doc/精简工具链.md`） |
+| `sdk-lite/` | 精简工具链工作区（Windows 版，aapt2/d8/apksigner/kotlinc，本体为 `AndroidSDK for CandyIDE.zip`，不入库，见 `android doc/精简工具链.md`） |
+| `LiteASDK/` | 安卓/Termux 精简工具链（aapt2/zipalign 为 aarch64 原生，取自 Termux 官方包；本体随 `LiteASDK.zip` 分发，不入库，见 `LiteASDK/README.md`） |
 
 ## 端到端流程
 

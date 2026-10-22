@@ -49,3 +49,8 @@ sdk-lite/keystore/
 sdk-lite/work/
 sdk-lite/out/
 AndroidSDK for CandyIDE/
+# Termux/Android 版包装产物（随 LiteASDK 打包过程生成，不入库）
+LiteASDK/
+sdk-lite/annotation processer/
+sdk-lite/template-app/
+LiteASDK.zip
