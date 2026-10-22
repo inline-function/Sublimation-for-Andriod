@@ -55,12 +55,12 @@ try{__dshBoot();}catch(e){}
   const Bottom = Alignment__Bottom;
   const Box = (modifier = Plain(), contentAlignment = Center(), body = () => {
   return null;
-}, children = "", recomposion = (_) => {}) => ({ tag: "Box", modifier: modifier, contentAlignment: contentAlignment, body: body, children: children, recomposion: recomposion });
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Box", modifier: modifier, contentAlignment: contentAlignment, body: body, children: children, recomposion: recomposion, __ord: __ord });
   const Button = (modifier = Plain(), enabled = true, onClick = (_) => {
   return null;
 }, body = () => {
   return null;
-}, children = "", recomposion = (_) => {}) => ({ tag: "Button", modifier: modifier, enabled: enabled, onClick: onClick, body: body, children: children, recomposion: recomposion });
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Button", modifier: modifier, enabled: enabled, onClick: onClick, body: body, children: children, recomposion: recomposion, __ord: __ord });
   function Modifier__Plain() { return { tag: "Plain" }; }
   const Plain = Modifier__Plain;
   function Modifier__FillMaxSize() { return { tag: "FillMaxSize" }; }
@@ -88,27 +88,36 @@ try{__dshBoot();}catch(e){}
   function height(n) {
     return Height(n);
   }
-  const Text = (text = "", modifier = Plain(), children = "", recomposion = (_) => {}) => ({ tag: "Text", text: text, modifier: modifier, children: children, recomposion: recomposion });
+  const Text = (text = "", modifier = Plain(), children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "Text", text: text, modifier: modifier, children: children, recomposion: recomposion, __ord: __ord });
   async function main() {
     (globalThis.__dshLifecycle_onCreate = ((_) => {
-  __dshAndroid("log", ["s", 2]);
+  __dshAndroid("log", ["Sublimation app started", 2]);
 }), __dshAndroid("registerLifecycle", ["onCreate"]));
     (globalThis.__dshLifecycle_onStart = ((_) => (function(f){ return __dshAndroid("layout", [JSON.stringify(f(null))]); })(content)), __dshAndroid("registerLifecycle", ["onStart"]));
     return null;
   }
   function content(_e) {
     let n = 0;
-    let label = Text("count: 0", undefined, [], recomposion$Text$1);
-    return Box(fillMaxSize(), Center(), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = ((_) => {
+    let label = Text("count: 0", undefined, [], recomposion$Text$1, 1);
+    return Box(Plain(), Center(), undefined, [Box(Plain(), Center(), undefined, [Text("不变的视图", undefined, [], recomposion$Text$2, 2)], recomposion$Box$2, 2), Box(Plain(), Center(), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = ((_) => {
   n = (n + 1);
   (() => { const __c = __dc(label); __c.text = ("count: " + __dshtoStr(n)); __c.recomposion(__c); })();
-}), "Button_onClick_1"), undefined, [label], recomposion$Button$1)], recomposion$Box$1);
+}), "Button_onClick_1"), undefined, [label], recomposion$Button$1, 1)], recomposion$Box$3, 3)], recomposion$Box$1, 1);
   }
   function recomposion$Text$1(v) {
     return __dshAndroid("androidRecompose", ["Text", 1, JSON.stringify(v)]);
   }
   function recomposion$Box$1(v) {
     return __dshAndroid("androidRecompose", ["Box", 1, JSON.stringify(v)]);
+  }
+  function recomposion$Box$2(v) {
+    return __dshAndroid("androidRecompose", ["Box", 2, JSON.stringify(v)]);
+  }
+  function recomposion$Text$2(v) {
+    return __dshAndroid("androidRecompose", ["Text", 2, JSON.stringify(v)]);
+  }
+  function recomposion$Box$3(v) {
+    return __dshAndroid("androidRecompose", ["Box", 3, JSON.stringify(v)]);
   }
   function recomposion$Button$1(v) {
     return __dshAndroid("androidRecompose", ["Button", 1, JSON.stringify(v)]);

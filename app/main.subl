@@ -1,5 +1,3 @@
-// main.subl —— Sublimation for Android 示例应用
-// 按 android doc/安卓标准库.md：活动生命周期 + 声明式布局 DSL + 视图重组（recomposion）
 @impure
 fun main(): Null {
     onCreate {
@@ -10,14 +8,18 @@ fun main(): Null {
     }
 }
 
-// 计数器示例：@mut 视图字段赋值 → __dc 深拷贝 → recomposion 回调 KT 端原地替换并重建。
 @composable
 fun content(_e: Any): Box {
     @mut var n = 0
     @mut var label = Text(text = "count: 0")
-    return Box(modifier = fillMaxSize(), contentAlignment = Center()) {
-        Button(onClick = { n = n + 1; label.text = concat("count: ", toStr(n)) }) {
-            label
+    return Box(modifier = Plain(), contentAlignment = Center()) {
+        Box(modifier = Plain(), contentAlignment = Center()) {
+            Text(text = "不变的视图")
+        }
+        Box(modifier = Plain(), contentAlignment = Center()) {
+            Button(onClick = { n = n + 1; label.text = concat("count: ", toStr(n)) }) {
+                label
+            }
         }
     }
 }
