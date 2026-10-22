@@ -6,8 +6,11 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -15,7 +18,6 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.button.MaterialButton
 import org.json.JSONObject
-
 /**
  * Sublimation 安卓壳：应用仅由一个活动构成。
  *
@@ -38,7 +40,38 @@ class MainActivity : Activity() {
         web.settings.domStorageEnabled = true
         web.webChromeClient = WebChromeClient()
         // 桥注入：JS 端调用 __dshAndroid(kind, args) → KT 端原生执行
+        // 桥注入：JS 端调用 __dshAndroid(kind, args) → KT 端原生执行
+        // 华为 hardened WebView 可能剥掉 addJavascriptInterface——app.js.html 里的
+        // JS 引导在 JS 侧探测到缺失时自动改用 prompt() 传输（onJsPrompt 拦截），两者同义。
         web.addJavascriptInterface(bridge, "__dshAndroid")
+        web.webChromeClient = object : WebChromeClient() {
+            // prompt("dsh:<kind>:<argsJson>") 传输：所有 WebView 通用的兜底通道
+            override fun onJsPrompt(view: WebView?, url: String?, message: String,
+                                    defaultValue: String?, result: JsPromptResult): Boolean {
+                if (message.startsWith("dsh:")) {
+                    val body = message.substring(4)
+                    val sep = body.indexOf(':')
+                    val kind = if (sep > 0) body.substring(0, sep) else ""
+                    val argsJson = if (sep > 0) body.substring(sep + 1) else "[]"
+                    result.confirm(bridge.dispatch(kind, argsJson))
+                    return true
+                }
+                return super.onJsPrompt(view, url, message, defaultValue, result)
+            }
+            override fun onJsAlert(view: WebView?, url: String?, message: String,
+                                   result: JsResult): Boolean {
+                result.confirm(); return true
+            }
+        }
+        // 诊断探针：页面载入完成后看 JS 侧桥是否可用
+        web.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView, url: String) {
+                Log.i(tag, "PAGE-FINISHED " + url)
+                view.evaluateJavascript("(typeof __dshAndroid)") { r ->
+                    Log.i(tag, "DSH-TYPEOF=" + r)
+                }
+            }
+        }
         setContentView(web)
 
         web.loadUrl("file:///android_asset/app.js.html")
