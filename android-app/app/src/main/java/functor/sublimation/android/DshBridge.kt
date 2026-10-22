@@ -43,6 +43,7 @@ class DshBridge(private val activity: MainActivity) {
             }
             "toast" -> {
                 val msg = args.getOrNull(0)?.toString() ?: ""
+                Log.d(tag, "toast " + msg)
                 val long = (args.getOrNull(1) as? Boolean) == true
                 activity.runOnUiThread {
                     Toast.makeText(activity, msg,

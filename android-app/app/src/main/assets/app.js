@@ -26,10 +26,12 @@ try{__dshBoot();}catch(e){}
     if (ka.length !== kb.length) return false;
     return ka.every(k => __eq(a[k], b[k]));
   };
-  const __dshAndroid = (kind, args) => {
-    if (kind === "log") console.log(...args);
-    return null;
-  };
+  const __dshAndroid = (typeof globalThis.__dshAndroid === 'function')
+    ? globalThis.__dshAndroid
+    : (kind, args) => {
+        if (kind === "log") console.log(...args);
+        return null;
+      };
   const Alignment = (value = 0) => ({ tag: "Alignment", value: value });
   function Center() {
     return Alignment(0);
@@ -93,7 +95,7 @@ try{__dshBoot();}catch(e){}
     return null;
   }
   function content(_e) {
-    return Box(Modifier("fillMaxSize"), Alignment(0), undefined, [Button(undefined, undefined, onClicked, undefined, [Text("Hello Sublimation", undefined, [], recomposion$Text$1)], recomposion$Button$1)], recomposion$Box$1);
+    return Box(Modifier("fillMaxSize"), Alignment(0), undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = (onClicked), "Button_onClick_1"), undefined, [Text("Hello Sublimation", undefined, [], recomposion$Text$1)], recomposion$Button$1)], recomposion$Box$1);
   }
   function onClicked(_e) {
     // unchecked
