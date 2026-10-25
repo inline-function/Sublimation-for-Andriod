@@ -6,6 +6,7 @@
     <application
         android:allowBackup="true"
         android:label="Sublimation"
+        android:icon="@mipmap/ic_launcher"
         android:theme="@style/Theme.Sublimation"
         android:usesCleartextTraffic="true">
         <activity

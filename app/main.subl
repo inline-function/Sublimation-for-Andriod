@@ -1,7 +1,11 @@
+// 用药记录 app —— 记录吃药的药名与剂量，时间线展示服药时间点（可滑动），storage 持久化。
+// 数据层见 meds.subl（"name | amount | time" 编码、storage 键 "meds"）；
+// 时间线组件见 TimelineView.subl；视图机制见 android doc/安卓标准库.md。
+
 @impure
 fun main(): Null {
     onCreate {
-        unchecked log("Sublimation app started", 2)
+        unchecked log("med app started", 2)
     }
     onStart {
         layout(content)
@@ -9,70 +13,59 @@ fun main(): Null {
 }
 
 @composable
-fun content(_e: Any): Box {
-    @mut var n = 0
-    @mut var label = Text(text = "count: 0")
-    @mut var name = Text(text = "待输入")
-    @mut var sval = Text(text = "slider: 0.50")
-    @mut var tint = Text(text = "开关：关", color = "#888888")
-@mut var cbox = Text(text = "复选框")
-    return Box(modifier = Plain(), contentAlignment = Center()) {
+fun content(): Box {
+    @mut var nameField = TextField(placeholder = "药名")
+    @mut var amountField = TextField(placeholder = "剂量，如 1 片")
+    // 冷启动：从 storage 恢复历史记录（unchecked 逃逸纯度检查）。
+    unchecked @mut var meds: List[Str] = loadMeds()
+    @mut var curTime: Str = ""
+    @mut var status = Text(text = concat(concat("共 ", toStr(size(meds))), " 条"))
+    @mut var rows = rowsView(meds)
+    @mut var timeline = TimelineView(times = medTimes(meds), labels = medLabels(meds))
+    return Box(modifier = Plain()) {
         Box(modifier = Plain()) {
-            Text(text = "不变的视图")
+            Text(text = "用药记录", size = 22, bold = true)
         }
-        Box(modifier = Plain()) {
-            Button(onClick = { n = n + 1; label.text = concat("count: ", toStr(n)) }) {
-                label
-            }
-        }
-        Box(modifier = Plain()) {
-            TextField(placeholder = "输入名字", onChange = { t => name.text = t })
-        }
+        Box(modifier = Plain()) { nameField }
+        Box(modifier = Plain()) { amountField }
         Box(modifier = Plain(), orientation = "horizontal") {
-            Text(text = "屏幕常亮")
-            Switch(onToggle = { b => unchecked keepScreenOn(b); tint.text = if (b) "开关：开" else "开关：关" })
-        }
-        Box(modifier = Plain()) {
-            tint
-        }
-        Box(modifier = Plain(), orientation = "horizontal") {
-            cbox
-            Checkbox(checked = true, onToggle = { b => cbox.text = if (b) "复选框：已选" else "复选框" })
-        }
-        Box(modifier = Plain()) {
-            Slider(value = 0.5, from = 0.0, to = 1.0, onChange = { v => sval.text = concat("slider: ", toStr(v)) })
-        }
-        Box(modifier = Plain()) {
-            sval
-        }
-        Box(modifier = Plain()) {
-            name
-        }
-        Box(modifier = Plain(), orientation = "horizontal") {
-            Button(onClick = { unchecked shareText(concat("你好，我是 ", name.text)) }) {
-                Text(text = "分享")
+            Button(onClick = {
+                unchecked curTime = nowStr()
+                meds = makeDose(meds, nameField.text, amountField.text, curTime)
+                unchecked saveMeds(meds)
+                status.text = concat(concat("共 ", toStr(size(meds))), " 条")
+                rows = rowsView(meds)
+                timeline = TimelineView(times = medTimes(meds), labels = medLabels(meds))
+                nameField.text = ""
+                amountField.text = ""
+            }) {
+                Text(text = "＋ 添加")
             }
-            Button(onClick = { unchecked openUrl("https://dsh.so") }) {
-                Text(text = "打开网页")
-            }
-            Button(onClick = { unchecked vibrate(60) }) {
-                Text(text = "震动")
-            }
-            Button(onClick = { unchecked clipboardSet(name.text); unchecked toast("已复制", false) }) {
-                Text(text = "复制")
-            }
-            Button(onClick = { unchecked storagePut("name", name.text); unchecked toast("已保存", false) }) {
-                Text(text = "保存")
+            Button(onClick = {
+                meds = emptyList()
+                unchecked saveMeds(meds)
+                status.text = "共 0 条"
+                rows = rowsView(emptyList())
+                timeline = TimelineView()
+            }) {
+                Text(text = "清空")
             }
         }
-        Box(modifier = Plain(), orientation = "horizontal") {
-            Progress(value = 70)
-            Image(name = "android:ic_menu_info_details")
-        }
-        Box(modifier = Plain()) {
-            Button(onClick = { unchecked pickFile("*/*", { p => unchecked toast(concat("已选: ", p), true) }) }) {
-                Text(text = "选文件")
-            }
-        }
+        Box(modifier = Plain()) { status }
+        Box(modifier = Plain()) { rows }
+        Box(modifier = Plain()) { timeline }
+    }
+}
+
+// 记录列表：每条一行（倒序，最新在最上）。
+@composable fun rowsView(meds: List[Str]): Box = Box(modifier = Plain()) {
+    rowsBody(reverse(meds))
+}
+
+@composable fun rowsBody(xs: List[Str]): Any = when (xs) {
+    Nil => Box(modifier = Plain()) {}
+    is Cons(m, rest) => Box(modifier = Plain(), orientation = "vertical") {
+        Text(text = m, size = 15)
+        rowsBody(rest)
     }
 }

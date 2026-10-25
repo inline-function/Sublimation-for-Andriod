@@ -19,7 +19,9 @@ import android.webkit.WebView
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.HorizontalScrollView
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.button.MaterialButton
@@ -193,6 +195,15 @@ class DshBridge(private val activity: MainActivity) {
             "screenWidth" -> return activity.resources.displayMetrics.widthPixels.toString()
             "screenHeight" -> return activity.resources.displayMetrics.heightPixels.toString()
             "screenDensity" -> return activity.resources.displayMetrics.densityDpi.toString()
+                        // 时间格式化：java.time → "MM-dd HH:mm"
+            "fmtTime" -> {
+                val ms = (args.getOrNull(0) as? Number)?.toLong() ?: 0L
+                val inst = java.time.Instant.ofEpochMilli(ms)
+                val zid = java.time.ZoneId.systemDefault()
+                val dt = java.time.LocalDateTime.ofInstant(inst, zid)
+                val fmt = java.time.format.DateTimeFormatter.ofPattern("MM-dd HH:mm")
+                dt.format(fmt)
+            }
             "installedApps" -> {
                 val apps = activity.packageManager.getInstalledApplications(0)
                 val arr = JSONArray()
@@ -357,6 +368,8 @@ class DshBridge(private val activity: MainActivity) {
             "Slider" -> buildSlider(node)
             "Image" -> buildImage(node)
             "Progress" -> buildProgress(node)
+            "Chart" -> buildChart(node)
+            "TimelineView" -> buildTimelineView(node)
             else -> buildText(node)
         }
     }
@@ -513,6 +526,77 @@ class DshBridge(private val activity: MainActivity) {
         if (id != 0) iv.setImageResource(id)
         setModifier(iv, node.opt("modifier"))
         return iv
+    }
+
+    /** 图表视图（@view Chart）：折线/柱状自绘 */
+    private fun buildChart(node: JSONObject): View {
+        val cv = ChartView(activity)
+        val kind = node.optString("kind", "line")
+        val colorHex = node.optString("color", "")
+        val series = node.optJSONArray("points")
+        val pts = FloatArray(series?.length() ?: 0) { i -> series!!.optDouble(i).toFloat() }
+        val labelArr = node.optJSONArray("labels")
+        val labels = Array(labelArr?.length() ?: 0) { i -> labelArr!!.optString(i) }
+        val density = (activity.resources.displayMetrics.densityDpi / 160f)
+        cv.layoutParams = ChartView.densityScaled(density)
+        if (colorHex.isNotEmpty()) {
+            val c = parseColor(colorHex)
+            if (c != 0) cv.setData(pts, labels, kind, c, (c and 0x00FFFFFF) or 0x33000000)
+            else cv.setData(pts, labels, kind, 0xFF7C4DFF.toInt(), 0x337C4DFF)
+        } else cv.setData(pts, labels, kind, 0xFF7C4DFF.toInt(), 0x337C4DFF)
+        return cv
+    }
+
+    /** 时间线视图（@view TimelineView）：可滑动的时间点列表（纵向 ScrollView / 横向 HorizontalScrollView） */
+    private fun buildTimelineView(node: JSONObject): View {
+        val horizontal = node.optString("orientation", "vertical") == "horizontal"
+        val scroller = if (horizontal) HorizontalScrollView(activity) else ScrollView(activity)
+        val density = activity.resources.displayMetrics.density
+        val line = LinearLayout(activity).apply {
+            orientation = if (horizontal) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        val timesArr = node.optJSONArray("times")
+        val labelsArr = node.optJSONArray("labels")
+        val colorHex = node.optString("color", "")
+        val dotColor = if (colorHex.isNotEmpty()) parseColor(colorHex) else 0xFF7C4DFF.toInt()
+        val n = timesArr?.length() ?: 0
+        for (i in 0 until n) {
+            val t = timesArr!!.optString(i)
+            val l = if (labelsArr != null && i < labelsArr.length()) labelsArr.optString(i) else ""
+            val row = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                val pad = (8 * density).toInt()
+                setPadding((12 * density).toInt(), pad, (12 * density).toInt(), pad)
+            }
+            row.addView(TextView(activity).apply {
+                text = t
+                textSize = 14f
+                minWidth = (56 * density).toInt()
+            })
+            val dot = View(activity).apply {
+                val d = (10 * density).toInt()
+                setBackgroundColor(dotColor)
+                layoutParams = LinearLayout.LayoutParams(d, d).apply {
+                    setMargins((8 * density).toInt(), 0, (8 * density).toInt(), 0)
+                }
+            }
+            row.addView(dot)
+            if (l.isNotEmpty()) {
+                row.addView(TextView(activity).apply {
+                    text = l
+                    textSize = 14f
+                    setTextColor(0xFF666666.toInt())
+                })
+            }
+            line.addView(row)
+        }
+        scroller.addView(line)
+        setModifier(scroller, node.opt("modifier"))
+        return scroller
     }
 
     private fun buildProgress(node: JSONObject): View {

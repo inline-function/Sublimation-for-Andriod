@@ -115,72 +115,111 @@ try{__dshBoot();}catch(e){}
 }, modifier = Plain(), body = () => {
   return null;
 }, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "TextField", placeholder: placeholder, text: text, keyboard: keyboard, onChange: onChange, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
+  const TimelineView = (times = core_collection__emptyList(), labels = core_collection__emptyList(), orientation = "vertical", color = "", modifier = Plain(), body = () => {
+  return null;
+}, children = "", recomposion = (_) => {}, __ord = 0) => ({ tag: "TimelineView", times: times, labels: labels, orientation: orientation, color: color, modifier: modifier, body: body, children: children, recomposion: recomposion, __ord: __ord });
   async function main() {
     (globalThis.__dshLifecycle_onCreate = ((_) => {
-  __dshAndroid("log", ["Sublimation app started", 2]);
+  __dshAndroid("log", ["med app started", 2]);
 }), __dshAndroid("registerLifecycle", ["onCreate"]));
     (globalThis.__dshLifecycle_onStart = ((_) => (function(f){ return __dshAndroid("layout", [JSON.stringify(f(null))]); })(content)), __dshAndroid("registerLifecycle", ["onStart"]));
     return null;
   }
-  function content(_e) {
-    let n = 0;
-    let label = Text("count: 0", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$1, 1);
-    let name = Text("待输入", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$2, 2);
-    let sval = Text("slider: 0.50", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$3, 3);
-    let tint = Text("开关：关", "#888888", undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$4, 4);
-    let cbox = Text("复选框", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$5, 5);
-    return Box(Plain(), Center(), undefined, undefined, undefined, [Box(Plain(), undefined, undefined, undefined, undefined, [Text("不变的视图", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$6, 6)], recomposion$Box$2, 2), Box(Plain(), undefined, undefined, undefined, undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = ((_) => {
-  n = (n + 1);
-  (() => { const __c = __dc(label); __c.text = ("count: " + __dshtoStr(n)); __c.recomposion(__c); })();
-}), "Button_onClick_1"), undefined, [label], recomposion$Button$1, 1)], recomposion$Box$3, 3), Box(Plain(), undefined, undefined, undefined, undefined, [TextField("输入名字", undefined, undefined, (globalThis.__dshFn_TextField_onChange_2 = ((t) => {
-  (() => { const __c = __dc(name); __c.text = t; __c.recomposion(__c); })();
-}), "TextField_onChange_2"), undefined, undefined, [], recomposion$TextField$1, 1)], recomposion$Box$4, 4), Box(Plain(), undefined, "horizontal", undefined, undefined, [Text("屏幕常亮", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$7, 7), Switch(undefined, undefined, (globalThis.__dshFn_Switch_onToggle_3 = ((b) => {
-  __dshAndroid("keepScreenOn", [b]);
-  (() => { const __c = __dc(tint); __c.text = (b ? (() => {
-  return "开关：开";
+  function content() {
+    let nameField = TextField("药名", undefined, undefined, undefined, undefined, undefined, [], recomposion$TextField$1, 1);
+    let amountField = TextField("剂量，如 1 片", undefined, undefined, undefined, undefined, undefined, [], recomposion$TextField$2, 2);
+    // unchecked
+    let meds = loadMeds();
+    let curTime = "";
+    let status = Text((("共 " + __dshtoStr((meds).length)) + " 条"), undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$1, 1);
+    let rows = rowsView(meds);
+    let timeline = TimelineView(medTimes(meds), medLabels(meds), undefined, undefined, undefined, undefined, [], recomposion$TimelineView$1, 1);
+    return Box(Plain(), undefined, undefined, undefined, undefined, [Box(Plain(), undefined, undefined, undefined, undefined, [Text("用药记录", undefined, 22, true, undefined, undefined, undefined, [], recomposion$Text$2, 2)], recomposion$Box$2, 2), Box(Plain(), undefined, undefined, undefined, undefined, [nameField], recomposion$Box$3, 3), Box(Plain(), undefined, undefined, undefined, undefined, [amountField], recomposion$Box$4, 4), Box(Plain(), undefined, "horizontal", undefined, undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_1 = ((_) => {
+  curTime = nowStr();
+  meds = makeDose(meds, nameField.text, amountField.text, curTime);
+  saveMeds(meds);
+  (() => { const __c = __dc(status); __c.text = (("共 " + __dshtoStr((meds).length)) + " 条"); __c.recomposion(__c); })();
+  rows = rowsView(meds);
+  timeline = TimelineView(medTimes(meds), medLabels(meds), undefined, undefined, undefined, undefined, [], recomposion$TimelineView$1, 1);
+  (() => { const __c = __dc(nameField); __c.text = ""; __c.recomposion(__c); })();
+  (() => { const __c = __dc(amountField); __c.text = ""; __c.recomposion(__c); })();
+}), "Button_onClick_1"), undefined, [Text("＋ 添加", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$3, 3)], recomposion$Button$1, 1), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_2 = ((_) => {
+  meds = core_collection__emptyList();
+  saveMeds(meds);
+  (() => { const __c = __dc(status); __c.text = "共 0 条"; __c.recomposion(__c); })();
+  rows = rowsView(core_collection__emptyList());
+  timeline = TimelineView();
+}), "Button_onClick_2"), undefined, [Text("清空", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$4, 4)], recomposion$Button$2, 2)], recomposion$Box$5, 5), Box(Plain(), undefined, undefined, undefined, undefined, [status], recomposion$Box$6, 6), Box(Plain(), undefined, undefined, undefined, undefined, [rows], recomposion$Box$7, 7), Box(Plain(), undefined, undefined, undefined, undefined, [timeline], recomposion$Box$8, 8)], recomposion$Box$1, 1);
+  }
+  function rowsView(meds) {
+    return Box(Plain(), undefined, undefined, undefined, undefined, [rowsBody((meds).slice().reverse())], recomposion$Box$9, 9);
+  }
+  function rowsBody(xs) {
+    return (() => {
+  const __s0 = xs;
+  if (((Array.isArray(__s0) && __s0.length === 0))) {  return Box(Plain(), undefined, undefined, undefined, undefined, undefined, recomposion$Box$10, 10); }
+  if (((Array.isArray(__s0) && __s0.length >= 1))) { const m = __s0[0]; const rest = __s0.slice(1);  return Box(Plain(), undefined, "vertical", undefined, undefined, [Text(m, undefined, 15, undefined, undefined, undefined, undefined, [], recomposion$Text$5, 5), rowsBody(rest)], recomposion$Box$11, 11); }
+  return null;
+})();
+  }
+  function doseEntry(name, amount, t) {
+    return (((name + " | ") + amount) + (" | " + t));
+  }
+  function makeDose(cur, name, amount, t) {
+    return core_collection__cons(doseEntry(name, amount, t), cur);
+  }
+  function doseName(entry) {
+    return entryPart(entry, 0);
+  }
+  function doseAmount(entry) {
+    return entryPart(entry, 1);
+  }
+  function doseTime(entry) {
+    return entryPart(entry, 2);
+  }
+  function entryPart(entry, i) {
+    return core_collection__getOrElse((() => { const a = (entry).split(" | "); const i = i; return i >= 0 && i < a.length ? Some(a[i]) : None(); })(), "");
+  }
+  function medTimes(meds) {
+    return dict_core_collection_Functor_List.map(dict_core_collection_Functor_List, meds, (m) => doseTime(m));
+  }
+  function medLabels(meds) {
+    return dict_core_collection_Functor_List.map(dict_core_collection_Functor_List, meds, (m) => (doseName(m) + (" · " + doseAmount(m))));
+  }
+  function joinMeds(xs) {
+    return dict_core_collection_Foldable_List.fold(dict_core_collection_Foldable_List, xs, "", (acc, x) => (__eq(acc, "") ? (() => {
+  return x;
 })() : (() => {
-  return "开关：关";
-})()); __c.recomposion(__c); })();
-}), "Switch_onToggle_3"), undefined, undefined, [], recomposion$Switch$1, 1)], recomposion$Box$5, 5), Box(Plain(), undefined, undefined, undefined, undefined, [tint], recomposion$Box$6, 6), Box(Plain(), undefined, "horizontal", undefined, undefined, [cbox, Checkbox(true, undefined, (globalThis.__dshFn_Checkbox_onToggle_4 = ((b) => {
-  (() => { const __c = __dc(cbox); __c.text = (b ? (() => {
-  return "复选框：已选";
+  return (acc + (";" + x));
+})()));
+  }
+  function loadMeds() {
+    const s = __dshAndroid("storageGet", ["meds"]);
+    return (__eq(s, "") ? (() => {
+  return core_collection__emptyList();
 })() : (() => {
-  return "复选框";
-})()); __c.recomposion(__c); })();
-}), "Checkbox_onToggle_4"), undefined, undefined, [], recomposion$Checkbox$1, 1)], recomposion$Box$7, 7), Box(Plain(), undefined, undefined, undefined, undefined, [Slider(0.5, 0.0, 1.0, undefined, (globalThis.__dshFn_Slider_onChange_5 = ((v) => {
-  (() => { const __c = __dc(sval); __c.text = ("slider: " + __dshtoStr(v)); __c.recomposion(__c); })();
-}), "Slider_onChange_5"), undefined, undefined, [], recomposion$Slider$1, 1)], recomposion$Box$8, 8), Box(Plain(), undefined, undefined, undefined, undefined, [sval], recomposion$Box$9, 9), Box(Plain(), undefined, undefined, undefined, undefined, [name], recomposion$Box$10, 10), Box(Plain(), undefined, "horizontal", undefined, undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_6 = ((_) => {
-  __dshAndroid("shareText", [("你好，我是 " + name.text)]);
-}), "Button_onClick_6"), undefined, [Text("分享", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$8, 8)], recomposion$Button$2, 2), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_7 = ((_) => {
-  __dshAndroid("openUrl", ["https://dsh.so"]);
-}), "Button_onClick_7"), undefined, [Text("打开网页", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$9, 9)], recomposion$Button$3, 3), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_8 = ((_) => {
-  __dshAndroid("vibrate", [60]);
-}), "Button_onClick_8"), undefined, [Text("震动", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$10, 10)], recomposion$Button$4, 4), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_9 = ((_) => {
-  __dshAndroid("clipboardSet", [name.text]);
-  __dshAndroid("toast", ["已复制", false]);
-}), "Button_onClick_9"), undefined, [Text("复制", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$11, 11)], recomposion$Button$5, 5), Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_10 = ((_) => {
-  __dshAndroid("storagePut", ["name", name.text]);
-  __dshAndroid("toast", ["已保存", false]);
-}), "Button_onClick_10"), undefined, [Text("保存", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$12, 12)], recomposion$Button$6, 6)], recomposion$Box$11, 11), Box(Plain(), undefined, "horizontal", undefined, undefined, [Progress(70, undefined, undefined, undefined, [], recomposion$Progress$1, 1), Image("android:ic_menu_info_details", undefined, undefined, [], recomposion$Image$1, 1)], recomposion$Box$12, 12), Box(Plain(), undefined, undefined, undefined, undefined, [Button(undefined, undefined, (globalThis.__dshFn_Button_onClick_11 = ((_) => {
-  (globalThis.__dshFn_android_pickFile_1 = ((p) => {
-  __dshAndroid("toast", [("已选: " + p), true]);
-}), __dshAndroid("pickFile", ["*/*", "android_pickFile_1"]));
-}), "Button_onClick_11"), undefined, [Text("选文件", undefined, undefined, undefined, undefined, undefined, undefined, [], recomposion$Text$13, 13)], recomposion$Button$7, 7)], recomposion$Box$13, 13)], recomposion$Box$1, 1);
+  return (s).split(";");
+})());
+  }
+  function saveMeds(xs) {
+    __dshAndroid("storagePut", ["meds", joinMeds(xs)]);
+    null;
+    return null;
+  }
+  function nowStr() {
+    return __dshAndroid("fmtTime", [Date.now()]);
+  }
+  function recomposion$TextField$1(v) {
+    return __dshAndroid("androidRecompose", ["TextField", 1, JSON.stringify(v)]);
+  }
+  function recomposion$TextField$2(v) {
+    return __dshAndroid("androidRecompose", ["TextField", 2, JSON.stringify(v)]);
   }
   function recomposion$Text$1(v) {
     return __dshAndroid("androidRecompose", ["Text", 1, JSON.stringify(v)]);
   }
-  function recomposion$Text$2(v) {
-    return __dshAndroid("androidRecompose", ["Text", 2, JSON.stringify(v)]);
-  }
-  function recomposion$Text$3(v) {
-    return __dshAndroid("androidRecompose", ["Text", 3, JSON.stringify(v)]);
-  }
-  function recomposion$Text$4(v) {
-    return __dshAndroid("androidRecompose", ["Text", 4, JSON.stringify(v)]);
-  }
-  function recomposion$Text$5(v) {
-    return __dshAndroid("androidRecompose", ["Text", 5, JSON.stringify(v)]);
+  function recomposion$TimelineView$1(v) {
+    return __dshAndroid("androidRecompose", ["TimelineView", 1, JSON.stringify(v)]);
   }
   function recomposion$Box$1(v) {
     return __dshAndroid("androidRecompose", ["Box", 1, JSON.stringify(v)]);
@@ -188,29 +227,29 @@ try{__dshBoot();}catch(e){}
   function recomposion$Box$2(v) {
     return __dshAndroid("androidRecompose", ["Box", 2, JSON.stringify(v)]);
   }
-  function recomposion$Text$6(v) {
-    return __dshAndroid("androidRecompose", ["Text", 6, JSON.stringify(v)]);
+  function recomposion$Text$2(v) {
+    return __dshAndroid("androidRecompose", ["Text", 2, JSON.stringify(v)]);
   }
   function recomposion$Box$3(v) {
     return __dshAndroid("androidRecompose", ["Box", 3, JSON.stringify(v)]);
   }
-  function recomposion$Button$1(v) {
-    return __dshAndroid("androidRecompose", ["Button", 1, JSON.stringify(v)]);
-  }
   function recomposion$Box$4(v) {
     return __dshAndroid("androidRecompose", ["Box", 4, JSON.stringify(v)]);
-  }
-  function recomposion$TextField$1(v) {
-    return __dshAndroid("androidRecompose", ["TextField", 1, JSON.stringify(v)]);
   }
   function recomposion$Box$5(v) {
     return __dshAndroid("androidRecompose", ["Box", 5, JSON.stringify(v)]);
   }
-  function recomposion$Text$7(v) {
-    return __dshAndroid("androidRecompose", ["Text", 7, JSON.stringify(v)]);
+  function recomposion$Button$1(v) {
+    return __dshAndroid("androidRecompose", ["Button", 1, JSON.stringify(v)]);
   }
-  function recomposion$Switch$1(v) {
-    return __dshAndroid("androidRecompose", ["Switch", 1, JSON.stringify(v)]);
+  function recomposion$Text$3(v) {
+    return __dshAndroid("androidRecompose", ["Text", 3, JSON.stringify(v)]);
+  }
+  function recomposion$Button$2(v) {
+    return __dshAndroid("androidRecompose", ["Button", 2, JSON.stringify(v)]);
+  }
+  function recomposion$Text$4(v) {
+    return __dshAndroid("androidRecompose", ["Text", 4, JSON.stringify(v)]);
   }
   function recomposion$Box$6(v) {
     return __dshAndroid("androidRecompose", ["Box", 6, JSON.stringify(v)]);
@@ -218,14 +257,8 @@ try{__dshBoot();}catch(e){}
   function recomposion$Box$7(v) {
     return __dshAndroid("androidRecompose", ["Box", 7, JSON.stringify(v)]);
   }
-  function recomposion$Checkbox$1(v) {
-    return __dshAndroid("androidRecompose", ["Checkbox", 1, JSON.stringify(v)]);
-  }
   function recomposion$Box$8(v) {
     return __dshAndroid("androidRecompose", ["Box", 8, JSON.stringify(v)]);
-  }
-  function recomposion$Slider$1(v) {
-    return __dshAndroid("androidRecompose", ["Slider", 1, JSON.stringify(v)]);
   }
   function recomposion$Box$9(v) {
     return __dshAndroid("androidRecompose", ["Box", 9, JSON.stringify(v)]);
@@ -236,76 +269,34 @@ try{__dshBoot();}catch(e){}
   function recomposion$Box$11(v) {
     return __dshAndroid("androidRecompose", ["Box", 11, JSON.stringify(v)]);
   }
-  function recomposion$Button$2(v) {
-    return __dshAndroid("androidRecompose", ["Button", 2, JSON.stringify(v)]);
+  function recomposion$Text$5(v) {
+    return __dshAndroid("androidRecompose", ["Text", 5, JSON.stringify(v)]);
   }
-  function recomposion$Text$8(v) {
-    return __dshAndroid("androidRecompose", ["Text", 8, JSON.stringify(v)]);
-  }
-  function recomposion$Button$3(v) {
-    return __dshAndroid("androidRecompose", ["Button", 3, JSON.stringify(v)]);
-  }
-  function recomposion$Text$9(v) {
-    return __dshAndroid("androidRecompose", ["Text", 9, JSON.stringify(v)]);
-  }
-  function recomposion$Button$4(v) {
-    return __dshAndroid("androidRecompose", ["Button", 4, JSON.stringify(v)]);
-  }
-  function recomposion$Text$10(v) {
-    return __dshAndroid("androidRecompose", ["Text", 10, JSON.stringify(v)]);
-  }
-  function recomposion$Button$5(v) {
-    return __dshAndroid("androidRecompose", ["Button", 5, JSON.stringify(v)]);
-  }
-  function recomposion$Text$11(v) {
-    return __dshAndroid("androidRecompose", ["Text", 11, JSON.stringify(v)]);
-  }
-  function recomposion$Button$6(v) {
-    return __dshAndroid("androidRecompose", ["Button", 6, JSON.stringify(v)]);
-  }
-  function recomposion$Text$12(v) {
-    return __dshAndroid("androidRecompose", ["Text", 12, JSON.stringify(v)]);
-  }
-  function recomposion$Box$12(v) {
-    return __dshAndroid("androidRecompose", ["Box", 12, JSON.stringify(v)]);
-  }
-  function recomposion$Progress$1(v) {
-    return __dshAndroid("androidRecompose", ["Progress", 1, JSON.stringify(v)]);
-  }
-  function recomposion$Image$1(v) {
-    return __dshAndroid("androidRecompose", ["Image", 1, JSON.stringify(v)]);
-  }
-  function recomposion$Box$13(v) {
-    return __dshAndroid("androidRecompose", ["Box", 13, JSON.stringify(v)]);
-  }
-  function recomposion$Button$7(v) {
-    return __dshAndroid("androidRecompose", ["Button", 7, JSON.stringify(v)]);
-  }
-  function recomposion$Text$13(v) {
-    return __dshAndroid("androidRecompose", ["Text", 13, JSON.stringify(v)]);
+  function recomposion$TimelineView$2(v) {
+    return __dshAndroid("androidRecompose", ["TimelineView", 2, JSON.stringify(v)]);
   }
   const dict_core_collection_Functor_List = {
     map: (d, fa, f) => (() => {
-  const __s0 = fa;
-  if (((Array.isArray(__s0) && __s0.length === 0))) {  return []; }
-  if (((Array.isArray(__s0) && __s0.length >= 1))) { const h = __s0[0]; const t = __s0.slice(1);  return [f(h), ...(dict_core_collection_Functor_List.map(dict_core_collection_Functor_List, t, f))]; }
+  const __s1 = fa;
+  if (((Array.isArray(__s1) && __s1.length === 0))) {  return []; }
+  if (((Array.isArray(__s1) && __s1.length >= 1))) { const h = __s1[0]; const t = __s1.slice(1);  return [f(h), ...(dict_core_collection_Functor_List.map(dict_core_collection_Functor_List, t, f))]; }
   return null;
 })()
   };
   const dict_core_collection_Foldable_List = {
     fold: (d, fa, init, f) => (() => {
-  const __s1 = fa;
-  if (((Array.isArray(__s1) && __s1.length === 0))) {  return init; }
-  if (((Array.isArray(__s1) && __s1.length >= 1))) { const h = __s1[0]; const t = __s1.slice(1);  return dict_core_collection_Foldable_List.fold(dict_core_collection_Foldable_List, t, f(init, h), f); }
+  const __s2 = fa;
+  if (((Array.isArray(__s2) && __s2.length === 0))) {  return init; }
+  if (((Array.isArray(__s2) && __s2.length >= 1))) { const h = __s2[0]; const t = __s2.slice(1);  return dict_core_collection_Foldable_List.fold(dict_core_collection_Foldable_List, t, f(init, h), f); }
   return null;
 })()
   };
   const dict_core_collection_Monad_List = {
     pure: (d, x) => [x, ...([])],
     flatMap: (d, fa, f) => (() => {
-  const __s2 = fa;
-  if (((Array.isArray(__s2) && __s2.length === 0))) {  return []; }
-  if (((Array.isArray(__s2) && __s2.length >= 1))) { const h = __s2[0]; const t = __s2.slice(1);  return (f(h)).concat(dict_core_collection_Monad_List.flatMap(dict_core_collection_Monad_List, t, f)); }
+  const __s3 = fa;
+  if (((Array.isArray(__s3) && __s3.length === 0))) {  return []; }
+  if (((Array.isArray(__s3) && __s3.length >= 1))) { const h = __s3[0]; const t = __s3.slice(1);  return (f(h)).concat(dict_core_collection_Monad_List.flatMap(dict_core_collection_Monad_List, t, f)); }
   return null;
 })()
   };
@@ -328,42 +319,42 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__size$List(xs) {
     return (() => {
-  const __s3 = xs;
-  if (((Array.isArray(__s3) && __s3.length === 0))) {  return 0; }
-  if (((Array.isArray(__s3) && __s3.length >= 1))) { const t = __s3.slice(1);  return ((t).length + 1); }
+  const __s4 = xs;
+  if (((Array.isArray(__s4) && __s4.length === 0))) {  return 0; }
+  if (((Array.isArray(__s4) && __s4.length >= 1))) { const t = __s4.slice(1);  return ((t).length + 1); }
   return null;
 })();
   }
   function core_collection__isEmpty$List(xs) {
     return (() => {
-  const __s4 = xs;
-  if (((Array.isArray(__s4) && __s4.length === 0))) {  return true; }
-  if (((Array.isArray(__s4) && __s4.length >= 1))) {  return false; }
+  const __s5 = xs;
+  if (((Array.isArray(__s5) && __s5.length === 0))) {  return true; }
+  if (((Array.isArray(__s5) && __s5.length >= 1))) {  return false; }
   return null;
 })();
   }
   function core_collection__head(xs) {
     return (() => {
-  const __s5 = xs;
-  if (((Array.isArray(__s5) && __s5.length === 0))) {  return None(); }
-  if (((Array.isArray(__s5) && __s5.length >= 1))) { const h = __s5[0];  return Some(h); }
+  const __s6 = xs;
+  if (((Array.isArray(__s6) && __s6.length === 0))) {  return None(); }
+  if (((Array.isArray(__s6) && __s6.length >= 1))) { const h = __s6[0];  return Some(h); }
   return null;
 })();
   }
   function core_collection__last(xs) {
     return (() => {
-  const __s6 = xs;
-  if (((Array.isArray(__s6) && __s6.length === 0))) {  return None(); }
-  if (((Array.isArray(__s6) && __s6.length >= 1)) && ((Array.isArray(__s6.slice(1)) && __s6.slice(1).length === 0))) { const h = __s6[0];  return Some(h); }
-  if (((Array.isArray(__s6) && __s6.length >= 1))) { const t = __s6.slice(1);  return (() => { const a = t; return a.length ? Some(a[a.length - 1]) : None(); })(); }
+  const __s7 = xs;
+  if (((Array.isArray(__s7) && __s7.length === 0))) {  return None(); }
+  if (((Array.isArray(__s7) && __s7.length >= 1)) && ((Array.isArray(__s7.slice(1)) && __s7.slice(1).length === 0))) { const h = __s7[0];  return Some(h); }
+  if (((Array.isArray(__s7) && __s7.length >= 1))) { const t = __s7.slice(1);  return (() => { const a = t; return a.length ? Some(a[a.length - 1]) : None(); })(); }
   return null;
 })();
   }
   function core_collection__elementAt(xs, i) {
     return (() => {
-  const __s7 = xs;
-  if (((Array.isArray(__s7) && __s7.length === 0))) {  return None(); }
-  if (((Array.isArray(__s7) && __s7.length >= 1))) { const h = __s7[0]; const t = __s7.slice(1);  return (__eq(i, 0) ? (() => {
+  const __s8 = xs;
+  if (((Array.isArray(__s8) && __s8.length === 0))) {  return None(); }
+  if (((Array.isArray(__s8) && __s8.length >= 1))) { const h = __s8[0]; const t = __s8.slice(1);  return (__eq(i, 0) ? (() => {
   return Some(h);
 })() : (() => {
   return (() => { const a = t; const i = (i - 1); return i >= 0 && i < a.length ? Some(a[i]) : None(); })();
@@ -373,9 +364,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__get$List(xs, i) {
     return (() => {
-  const __s8 = (() => { const a = xs; const i = i; return i >= 0 && i < a.length ? Some(a[i]) : None(); })();
-  if ((__s8.tag === "Some")) { const v = __s8[0];  return v; }
-  if ((__s8.tag === "None")) {  return (() => { throw new Error('panic: unreachable') })(); }
+  const __s9 = (() => { const a = xs; const i = i; return i >= 0 && i < a.length ? Some(a[i]) : None(); })();
+  if ((__s9.tag === "Some")) { const v = __s9[0];  return v; }
+  if ((__s9.tag === "None")) {  return (() => { throw new Error('panic: unreachable') })(); }
   return null;
 })();
   }
@@ -384,9 +375,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__contains$List(xs, x) {
     return (() => {
-  const __s9 = xs;
-  if (((Array.isArray(__s9) && __s9.length === 0))) {  return false; }
-  if (((Array.isArray(__s9) && __s9.length >= 1))) { const h = __s9[0]; const t = __s9.slice(1);  return (__eq(h, x) ? (() => {
+  const __s10 = xs;
+  if (((Array.isArray(__s10) && __s10.length === 0))) {  return false; }
+  if (((Array.isArray(__s10) && __s10.length >= 1))) { const h = __s10[0]; const t = __s10.slice(1);  return (__eq(h, x) ? (() => {
   return true;
 })() : (() => {
   return (t).includes(x);
@@ -396,15 +387,15 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__indexOf(xs, x) {
     return (() => {
-  const __s10 = xs;
-  if (((Array.isArray(__s10) && __s10.length === 0))) {  return None(); }
-  if (((Array.isArray(__s10) && __s10.length >= 1))) { const h = __s10[0]; const t = __s10.slice(1);  return (__eq(h, x) ? (() => {
+  const __s11 = xs;
+  if (((Array.isArray(__s11) && __s11.length === 0))) {  return None(); }
+  if (((Array.isArray(__s11) && __s11.length >= 1))) { const h = __s11[0]; const t = __s11.slice(1);  return (__eq(h, x) ? (() => {
   return Some(0);
 })() : (() => {
   return (() => {
-  const __s11 = (() => { const i = (t).indexOf(x); return i === -1 ? None() : Some(i); })();
-  if ((__s11.tag === "Some")) { const n = __s11[0];  return Some((n + 1)); }
-  if ((__s11.tag === "None")) {  return None(); }
+  const __s12 = (() => { const i = (t).indexOf(x); return i === -1 ? None() : Some(i); })();
+  if ((__s12.tag === "Some")) { const n = __s12[0];  return Some((n + 1)); }
+  if ((__s12.tag === "None")) {  return None(); }
   return null;
 })();
 })()); }
@@ -426,9 +417,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__find(xs, p) {
     return (() => {
-  const __s12 = xs;
-  if (((Array.isArray(__s12) && __s12.length === 0))) {  return None(); }
-  if (((Array.isArray(__s12) && __s12.length >= 1))) { const h = __s12[0]; const t = __s12.slice(1);  return (p(h) ? (() => {
+  const __s13 = xs;
+  if (((Array.isArray(__s13) && __s13.length === 0))) {  return None(); }
+  if (((Array.isArray(__s13) && __s13.length >= 1))) { const h = __s13[0]; const t = __s13.slice(1);  return (p(h) ? (() => {
   return Some(h);
 })() : (() => {
   return core_collection__find(t, p);
@@ -438,9 +429,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__forEach$List(xs, f) {
     return (() => {
-  const __s13 = xs;
-  if (((Array.isArray(__s13) && __s13.length === 0))) {  return null; }
-  if (((Array.isArray(__s13) && __s13.length >= 1))) { const h = __s13[0]; const t = __s13.slice(1);  return (() => {
+  const __s14 = xs;
+  if (((Array.isArray(__s14) && __s14.length === 0))) {  return null; }
+  if (((Array.isArray(__s14) && __s14.length >= 1))) { const h = __s14[0]; const t = __s14.slice(1);  return (() => {
   f(h);
   return (t).forEach(x => (f)(x));
 })(); }
@@ -449,17 +440,17 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__append(xs, ys) {
     return (() => {
-  const __s14 = xs;
-  if (((Array.isArray(__s14) && __s14.length === 0))) {  return ys; }
-  if (((Array.isArray(__s14) && __s14.length >= 1))) { const h = __s14[0]; const t = __s14.slice(1);  return [h, ...((t).concat(ys))]; }
+  const __s15 = xs;
+  if (((Array.isArray(__s15) && __s15.length === 0))) {  return ys; }
+  if (((Array.isArray(__s15) && __s15.length >= 1))) { const h = __s15[0]; const t = __s15.slice(1);  return [h, ...((t).concat(ys))]; }
   return null;
 })();
   }
   function core_collection__take(xs, n) {
     return (() => {
-  const __s15 = xs;
-  if (((Array.isArray(__s15) && __s15.length === 0))) {  return []; }
-  if (((Array.isArray(__s15) && __s15.length >= 1))) { const h = __s15[0]; const t = __s15.slice(1);  return (__eq(n, 0) ? (() => {
+  const __s16 = xs;
+  if (((Array.isArray(__s16) && __s16.length === 0))) {  return []; }
+  if (((Array.isArray(__s16) && __s16.length >= 1))) { const h = __s16[0]; const t = __s16.slice(1);  return (__eq(n, 0) ? (() => {
   return [];
 })() : (() => {
   const r = (t).slice(0, (n - 1));
@@ -470,9 +461,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__drop(xs, n) {
     return (() => {
-  const __s16 = xs;
-  if (((Array.isArray(__s16) && __s16.length === 0))) {  return []; }
-  if (((Array.isArray(__s16) && __s16.length >= 1))) { const t = __s16.slice(1);  return (__eq(n, 0) ? (() => {
+  const __s17 = xs;
+  if (((Array.isArray(__s17) && __s17.length === 0))) {  return []; }
+  if (((Array.isArray(__s17) && __s17.length >= 1))) { const t = __s17.slice(1);  return (__eq(n, 0) ? (() => {
   return xs;
 })() : (() => {
   const r = (t).slice((n - 1));
@@ -483,9 +474,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__slice(xs, from, to) {
     return (() => {
-  const __s17 = xs;
-  if (((Array.isArray(__s17) && __s17.length === 0))) {  return []; }
-  if (((Array.isArray(__s17) && __s17.length >= 1))) { const h = __s17[0]; const t = __s17.slice(1);  return ((to <= from) ? (() => {
+  const __s18 = xs;
+  if (((Array.isArray(__s18) && __s18.length === 0))) {  return []; }
+  if (((Array.isArray(__s18) && __s18.length >= 1))) { const h = __s18[0]; const t = __s18.slice(1);  return ((to <= from) ? (() => {
   return [];
 })() : (() => {
   return (__eq(from, 0) ? (() => {
@@ -500,9 +491,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__filter$List(xs, p) {
     return (() => {
-  const __s18 = xs;
-  if (((Array.isArray(__s18) && __s18.length === 0))) {  return []; }
-  if (((Array.isArray(__s18) && __s18.length >= 1))) { const h = __s18[0]; const t = __s18.slice(1);  return (p(h) ? (() => {
+  const __s19 = xs;
+  if (((Array.isArray(__s19) && __s19.length === 0))) {  return []; }
+  if (((Array.isArray(__s19) && __s19.length >= 1))) { const h = __s19[0]; const t = __s19.slice(1);  return (p(h) ? (() => {
   return [h, ...((t).filter(p))];
 })() : (() => {
   return (t).filter(p);
@@ -512,9 +503,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__distinct(xs) {
     return (() => {
-  const __s19 = xs;
-  if (((Array.isArray(__s19) && __s19.length === 0))) {  return []; }
-  if (((Array.isArray(__s19) && __s19.length >= 1))) { const h = __s19[0]; const t = __s19.slice(1);  return ((t).includes(h) ? (() => {
+  const __s20 = xs;
+  if (((Array.isArray(__s20) && __s20.length === 0))) {  return []; }
+  if (((Array.isArray(__s20) && __s20.length >= 1))) { const h = __s20[0]; const t = __s20.slice(1);  return ((t).includes(h) ? (() => {
   return core_collection__distinct(t);
 })() : (() => {
   return [h, ...(core_collection__distinct(t))];
@@ -524,17 +515,17 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__sortBy(xs, f) {
     return (() => {
-  const __s20 = xs;
-  if (((Array.isArray(__s20) && __s20.length === 0))) {  return []; }
-  if (((Array.isArray(__s20) && __s20.length >= 1))) { const h = __s20[0]; const t = __s20.slice(1);  return core_collection__insertSort(h, (t).slice().sort((a, b) => (f)(a, b) ? -1 : 1), f); }
+  const __s21 = xs;
+  if (((Array.isArray(__s21) && __s21.length === 0))) {  return []; }
+  if (((Array.isArray(__s21) && __s21.length >= 1))) { const h = __s21[0]; const t = __s21.slice(1);  return core_collection__insertSort(h, (t).slice().sort((a, b) => (f)(a, b) ? -1 : 1), f); }
   return null;
 })();
   }
   function core_collection__insertSort(x, xs, f) {
     return (() => {
-  const __s21 = xs;
-  if (((Array.isArray(__s21) && __s21.length === 0))) {  return [x, ...([])]; }
-  if (((Array.isArray(__s21) && __s21.length >= 1))) { const h = __s21[0]; const t = __s21.slice(1);  return (f(x, h) ? (() => {
+  const __s22 = xs;
+  if (((Array.isArray(__s22) && __s22.length === 0))) {  return [x, ...([])]; }
+  if (((Array.isArray(__s22) && __s22.length >= 1))) { const h = __s22[0]; const t = __s22.slice(1);  return (f(x, h) ? (() => {
   return [x, ...([h, ...(t)])];
 })() : (() => {
   return [h, ...(core_collection__insertSort(x, t, f))];
@@ -544,9 +535,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__reverse(xs) {
     return (() => {
-  const __s22 = xs;
-  if (((Array.isArray(__s22) && __s22.length === 0))) {  return []; }
-  if (((Array.isArray(__s22) && __s22.length >= 1))) { const h = __s22[0]; const t = __s22.slice(1);  return ((t).slice().reverse()).concat([h, ...([])]); }
+  const __s23 = xs;
+  if (((Array.isArray(__s23) && __s23.length === 0))) {  return []; }
+  if (((Array.isArray(__s23) && __s23.length >= 1))) { const h = __s23[0]; const t = __s23.slice(1);  return ((t).slice().reverse()).concat([h, ...([])]); }
   return null;
 })();
   }
@@ -558,19 +549,19 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__maxNat(xs) {
     return (() => {
-  const __s23 = xs;
-  if (((Array.isArray(__s23) && __s23.length === 0))) {  return None(); }
-  if (((Array.isArray(__s23) && __s23.length >= 1))) { const h = __s23[0]; const t = __s23.slice(1);  return (() => {
-  const __s24 = t;
-  if (((Array.isArray(__s24) && __s24.length === 0))) {  return Some(h); }
-  if (((Array.isArray(__s24) && __s24.length >= 1))) {  return (() => {
-  const __s25 = core_collection__maxNat(t);
-  if ((__s25.tag === "Some")) { const v = __s25[0];  return ((h > v) ? (() => {
+  const __s24 = xs;
+  if (((Array.isArray(__s24) && __s24.length === 0))) {  return None(); }
+  if (((Array.isArray(__s24) && __s24.length >= 1))) { const h = __s24[0]; const t = __s24.slice(1);  return (() => {
+  const __s25 = t;
+  if (((Array.isArray(__s25) && __s25.length === 0))) {  return Some(h); }
+  if (((Array.isArray(__s25) && __s25.length >= 1))) {  return (() => {
+  const __s26 = core_collection__maxNat(t);
+  if ((__s26.tag === "Some")) { const v = __s26[0];  return ((h > v) ? (() => {
   return Some(h);
 })() : (() => {
   return Some(v);
 })()); }
-  if ((__s25.tag === "None")) {  return Some(h); }
+  if ((__s26.tag === "None")) {  return Some(h); }
   return null;
 })(); }
   return null;
@@ -580,19 +571,19 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__minNat(xs) {
     return (() => {
-  const __s26 = xs;
-  if (((Array.isArray(__s26) && __s26.length === 0))) {  return None(); }
-  if (((Array.isArray(__s26) && __s26.length >= 1))) { const h = __s26[0]; const t = __s26.slice(1);  return (() => {
-  const __s27 = t;
-  if (((Array.isArray(__s27) && __s27.length === 0))) {  return Some(h); }
-  if (((Array.isArray(__s27) && __s27.length >= 1))) {  return (() => {
-  const __s28 = core_collection__minNat(t);
-  if ((__s28.tag === "Some")) { const v = __s28[0];  return ((h < v) ? (() => {
+  const __s27 = xs;
+  if (((Array.isArray(__s27) && __s27.length === 0))) {  return None(); }
+  if (((Array.isArray(__s27) && __s27.length >= 1))) { const h = __s27[0]; const t = __s27.slice(1);  return (() => {
+  const __s28 = t;
+  if (((Array.isArray(__s28) && __s28.length === 0))) {  return Some(h); }
+  if (((Array.isArray(__s28) && __s28.length >= 1))) {  return (() => {
+  const __s29 = core_collection__minNat(t);
+  if ((__s29.tag === "Some")) { const v = __s29[0];  return ((h < v) ? (() => {
   return Some(h);
 })() : (() => {
   return Some(v);
 })()); }
-  if ((__s28.tag === "None")) {  return Some(h); }
+  if ((__s29.tag === "None")) {  return Some(h); }
   return null;
 })(); }
   return null;
@@ -609,12 +600,12 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__zip(xs, ys) {
     return (() => {
-  const __s29 = xs;
-  if (((Array.isArray(__s29) && __s29.length === 0))) {  return []; }
-  if (((Array.isArray(__s29) && __s29.length >= 1))) { const h = __s29[0]; const t = __s29.slice(1);  return (() => {
-  const __s30 = ys;
+  const __s30 = xs;
   if (((Array.isArray(__s30) && __s30.length === 0))) {  return []; }
-  if (((Array.isArray(__s30) && __s30.length >= 1))) { const h2 = __s30[0]; const t2 = __s30.slice(1);  return [[h, h2], ...(core_collection__zip(t, t2))]; }
+  if (((Array.isArray(__s30) && __s30.length >= 1))) { const h = __s30[0]; const t = __s30.slice(1);  return (() => {
+  const __s31 = ys;
+  if (((Array.isArray(__s31) && __s31.length === 0))) {  return []; }
+  if (((Array.isArray(__s31) && __s31.length >= 1))) { const h2 = __s31[0]; const t2 = __s31.slice(1);  return [[h, h2], ...(core_collection__zip(t, t2))]; }
   return null;
 })(); }
   return null;
@@ -622,19 +613,19 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__toSet(xs) {
     return (() => {
-  const __s31 = xs;
-  if (((Array.isArray(__s31) && __s31.length === 0))) {  return core_collection__SetNil(); }
-  if (((Array.isArray(__s31) && __s31.length >= 1))) { const h = __s31[0]; const t = __s31.slice(1);  return core_collection__add(core_collection__toSet(t), h); }
+  const __s32 = xs;
+  if (((Array.isArray(__s32) && __s32.length === 0))) {  return core_collection__SetNil(); }
+  if (((Array.isArray(__s32) && __s32.length >= 1))) { const h = __s32[0]; const t = __s32.slice(1);  return core_collection__add(core_collection__toSet(t), h); }
   return null;
 })();
   }
   function core_collection__toMap(xs) {
     return (() => {
-  const __s32 = xs;
-  if (((Array.isArray(__s32) && __s32.length === 0))) {  return core_collection__MapNil(); }
-  if (((Array.isArray(__s32) && __s32.length >= 1))) { const pr = __s32[0]; const t = __s32.slice(1);  return (() => {
-  const __s33 = pr;
-  if (((Array.isArray(__s33) && __s33.length === 2))) { const k = __s33[0]; const v = __s33[1];  return core_collection__put(core_collection__toMap(t), k, v); }
+  const __s33 = xs;
+  if (((Array.isArray(__s33) && __s33.length === 0))) {  return core_collection__MapNil(); }
+  if (((Array.isArray(__s33) && __s33.length >= 1))) { const pr = __s33[0]; const t = __s33.slice(1);  return (() => {
+  const __s34 = pr;
+  if (((Array.isArray(__s34) && __s34.length === 2))) { const k = __s34[0]; const v = __s34[1];  return core_collection__put(core_collection__toMap(t), k, v); }
   return null;
 })(); }
   return null;
@@ -649,25 +640,25 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__size$Map(m) {
     return (() => {
-  const __s34 = m;
-  if ((__s34.tag === "MapNil")) {  return 0; }
-  if ((__s34.tag === "MapCons")) { const t = __s34[2];  return (core_collection__size$Map(t) + 1); }
+  const __s35 = m;
+  if ((__s35.tag === "MapNil")) {  return 0; }
+  if ((__s35.tag === "MapCons")) { const t = __s35[2];  return (core_collection__size$Map(t) + 1); }
   return null;
 })();
   }
   function core_collection__isEmpty$Map(m) {
     return (() => {
-  const __s35 = m;
-  if ((__s35.tag === "MapNil")) {  return true; }
-  if ((__s35.tag === "MapCons")) {  return false; }
+  const __s36 = m;
+  if ((__s36.tag === "MapNil")) {  return true; }
+  if ((__s36.tag === "MapCons")) {  return false; }
   return null;
 })();
   }
   function core_collection__get$Map(m, k) {
     return (() => {
-  const __s36 = m;
-  if ((__s36.tag === "MapNil")) {  return None(); }
-  if ((__s36.tag === "MapCons")) { const k0 = __s36[0]; const v0 = __s36[1]; const t = __s36[2];  return (__eq(k0, k) ? (() => {
+  const __s37 = m;
+  if ((__s37.tag === "MapNil")) {  return None(); }
+  if ((__s37.tag === "MapCons")) { const k0 = __s37[0]; const v0 = __s37[1]; const t = __s37[2];  return (__eq(k0, k) ? (() => {
   return Some(v0);
 })() : (() => {
   return core_collection__get$Map(t, k);
@@ -677,9 +668,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__containsKey(m, k) {
     return (() => {
-  const __s37 = m;
-  if ((__s37.tag === "MapNil")) {  return false; }
-  if ((__s37.tag === "MapCons")) { const k0 = __s37[0]; const t = __s37[2];  return (__eq(k0, k) ? (() => {
+  const __s38 = m;
+  if ((__s38.tag === "MapNil")) {  return false; }
+  if ((__s38.tag === "MapCons")) { const k0 = __s38[0]; const t = __s38[2];  return (__eq(k0, k) ? (() => {
   return true;
 })() : (() => {
   return core_collection__containsKey(t, k);
@@ -689,17 +680,17 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__keys(m) {
     return (() => {
-  const __s38 = m;
-  if ((__s38.tag === "MapNil")) {  return []; }
-  if ((__s38.tag === "MapCons")) { const k0 = __s38[0]; const t = __s38[2];  return [k0, ...(core_collection__keys(t))]; }
+  const __s39 = m;
+  if ((__s39.tag === "MapNil")) {  return []; }
+  if ((__s39.tag === "MapCons")) { const k0 = __s39[0]; const t = __s39[2];  return [k0, ...(core_collection__keys(t))]; }
   return null;
 })();
   }
   function core_collection__values(m) {
     return (() => {
-  const __s39 = m;
-  if ((__s39.tag === "MapNil")) {  return []; }
-  if ((__s39.tag === "MapCons")) { const v0 = __s39[1]; const t = __s39[2];  return [v0, ...(core_collection__values(t))]; }
+  const __s40 = m;
+  if ((__s40.tag === "MapNil")) {  return []; }
+  if ((__s40.tag === "MapCons")) { const v0 = __s40[1]; const t = __s40[2];  return [v0, ...(core_collection__values(t))]; }
   return null;
 })();
   }
@@ -708,9 +699,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__remove$Map(m, k) {
     return (() => {
-  const __s40 = m;
-  if ((__s40.tag === "MapNil")) {  return core_collection__MapNil(); }
-  if ((__s40.tag === "MapCons")) { const k0 = __s40[0]; const v0 = __s40[1]; const t = __s40[2];  return (__eq(k0, k) ? (() => {
+  const __s41 = m;
+  if ((__s41.tag === "MapNil")) {  return core_collection__MapNil(); }
+  if ((__s41.tag === "MapCons")) { const k0 = __s41[0]; const v0 = __s41[1]; const t = __s41[2];  return (__eq(k0, k) ? (() => {
   return t;
 })() : (() => {
   return core_collection__MapCons(k0, v0, core_collection__remove$Map(t, k));
@@ -720,9 +711,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__filter$Map(m, p) {
     return (() => {
-  const __s41 = m;
-  if ((__s41.tag === "MapNil")) {  return core_collection__MapNil(); }
-  if ((__s41.tag === "MapCons")) { const k0 = __s41[0]; const v0 = __s41[1]; const t = __s41[2];  return (p(v0) ? (() => {
+  const __s42 = m;
+  if ((__s42.tag === "MapNil")) {  return core_collection__MapNil(); }
+  if ((__s42.tag === "MapCons")) { const k0 = __s42[0]; const v0 = __s42[1]; const t = __s42[2];  return (p(v0) ? (() => {
   return core_collection__MapCons(k0, v0, core_collection__filter$Map(t, p));
 })() : (() => {
   return core_collection__filter$Map(t, p);
@@ -732,25 +723,25 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__mapValues(m, f) {
     return (() => {
-  const __s42 = m;
-  if ((__s42.tag === "MapNil")) {  return core_collection__MapNil(); }
-  if ((__s42.tag === "MapCons")) { const k0 = __s42[0]; const v0 = __s42[1]; const t = __s42[2];  return core_collection__MapCons(k0, f(v0), core_collection__mapValues(t, f)); }
+  const __s43 = m;
+  if ((__s43.tag === "MapNil")) {  return core_collection__MapNil(); }
+  if ((__s43.tag === "MapCons")) { const k0 = __s43[0]; const v0 = __s43[1]; const t = __s43[2];  return core_collection__MapCons(k0, f(v0), core_collection__mapValues(t, f)); }
   return null;
 })();
   }
   function core_collection__mapKeys(m, f) {
     return (() => {
-  const __s43 = m;
-  if ((__s43.tag === "MapNil")) {  return core_collection__MapNil(); }
-  if ((__s43.tag === "MapCons")) { const k0 = __s43[0]; const v0 = __s43[1]; const t = __s43[2];  return core_collection__put(core_collection__mapKeys(t, f), f(k0), v0); }
+  const __s44 = m;
+  if ((__s44.tag === "MapNil")) {  return core_collection__MapNil(); }
+  if ((__s44.tag === "MapCons")) { const k0 = __s44[0]; const v0 = __s44[1]; const t = __s44[2];  return core_collection__put(core_collection__mapKeys(t, f), f(k0), v0); }
   return null;
 })();
   }
   function core_collection__merge(m1, m2) {
     return (() => {
-  const __s44 = m2;
-  if ((__s44.tag === "MapNil")) {  return m1; }
-  if ((__s44.tag === "MapCons")) { const k0 = __s44[0]; const v0 = __s44[1]; const t = __s44[2];  return core_collection__merge(core_collection__put(m1, k0, v0), t); }
+  const __s45 = m2;
+  if ((__s45.tag === "MapNil")) {  return m1; }
+  if ((__s45.tag === "MapCons")) { const k0 = __s45[0]; const v0 = __s45[1]; const t = __s45[2];  return core_collection__merge(core_collection__put(m1, k0, v0), t); }
   return null;
 })();
   }
@@ -763,86 +754,86 @@ try{__dshBoot();}catch(e){}
   const core_collection__None = core_collection__Optional__None;
   const dict_core_collection_Functor_Optional = {
     map: (d, fa, f) => (() => {
-  const __s45 = fa;
-  if ((__s45.tag === "Some")) { const v = __s45[0];  return Some(f(v)); }
-  if ((__s45.tag === "None")) {  return None(); }
+  const __s46 = fa;
+  if ((__s46.tag === "Some")) { const v = __s46[0];  return Some(f(v)); }
+  if ((__s46.tag === "None")) {  return None(); }
   return null;
 })()
   };
   const dict_core_collection_Foldable_Optional = {
     fold: (d, fa, init, f) => (() => {
-  const __s46 = fa;
-  if ((__s46.tag === "Some")) { const v = __s46[0];  return f(init, v); }
-  if ((__s46.tag === "None")) {  return init; }
+  const __s47 = fa;
+  if ((__s47.tag === "Some")) { const v = __s47[0];  return f(init, v); }
+  if ((__s47.tag === "None")) {  return init; }
   return null;
 })()
   };
   const dict_core_collection_Monad_Optional = {
     pure: (d, x) => Some(x),
     flatMap: (d, fa, f) => (() => {
-  const __s47 = fa;
-  if ((__s47.tag === "Some")) { const v = __s47[0];  return f(v); }
-  if ((__s47.tag === "None")) {  return None(); }
+  const __s48 = fa;
+  if ((__s48.tag === "Some")) { const v = __s48[0];  return f(v); }
+  if ((__s48.tag === "None")) {  return None(); }
   return null;
 })()
   };
   function core_collection__isSome(o) {
     return (() => {
-  const __s48 = o;
-  if ((__s48.tag === "Some")) {  return true; }
-  if ((__s48.tag === "None")) {  return false; }
+  const __s49 = o;
+  if ((__s49.tag === "Some")) {  return true; }
+  if ((__s49.tag === "None")) {  return false; }
   return null;
 })();
   }
   function core_collection__isNone(o) {
     return (() => {
-  const __s49 = o;
-  if ((__s49.tag === "Some")) {  return false; }
-  if ((__s49.tag === "None")) {  return true; }
+  const __s50 = o;
+  if ((__s50.tag === "Some")) {  return false; }
+  if ((__s50.tag === "None")) {  return true; }
   return null;
 })();
   }
   function core_collection__getOrElse(o, d) {
     return (() => {
-  const __s50 = o;
-  if ((__s50.tag === "Some")) { const v = __s50[0];  return v; }
-  if ((__s50.tag === "None")) {  return d; }
+  const __s51 = o;
+  if ((__s51.tag === "Some")) { const v = __s51[0];  return v; }
+  if ((__s51.tag === "None")) {  return d; }
   return null;
 })();
   }
   function core_collection__orElse(o, d) {
     return (() => {
-  const __s51 = o;
-  if ((__s51.tag === "Some")) {  return o; }
-  if ((__s51.tag === "None")) {  return d; }
+  const __s52 = o;
+  if ((__s52.tag === "Some")) {  return o; }
+  if ((__s52.tag === "None")) {  return d; }
   return null;
 })();
   }
   function core_collection__filter$Optional(o, p) {
     return (() => {
-  const __s52 = o;
-  if ((__s52.tag === "Some")) { const v = __s52[0];  return (p(v) ? (() => {
+  const __s53 = o;
+  if ((__s53.tag === "Some")) { const v = __s53[0];  return (p(v) ? (() => {
   return Some(v);
 })() : (() => {
   return None();
 })()); }
-  if ((__s52.tag === "None")) {  return None(); }
+  if ((__s53.tag === "None")) {  return None(); }
   return null;
 })();
   }
   function core_collection__toResult(o, e) {
     return (() => {
-  const __s53 = o;
-  if ((__s53.tag === "Some")) { const v = __s53[0];  return core_collection__Ok(v); }
-  if ((__s53.tag === "None")) {  return core_collection__Err(e); }
+  const __s54 = o;
+  if ((__s54.tag === "Some")) { const v = __s54[0];  return core_collection__Ok(v); }
+  if ((__s54.tag === "None")) {  return core_collection__Err(e); }
   return null;
 })();
   }
   function core_collection__toList$Optional(o) {
     return (() => {
-  const __s54 = o;
-  if ((__s54.tag === "Some")) { const v = __s54[0];  return [v, ...([])]; }
-  if ((__s54.tag === "None")) {  return []; }
+  const __s55 = o;
+  if ((__s55.tag === "Some")) { const v = __s55[0];  return [v, ...([])]; }
+  if ((__s55.tag === "None")) {  return []; }
   return null;
 })();
   }
@@ -852,57 +843,57 @@ try{__dshBoot();}catch(e){}
   const core_collection__Err = core_collection__Result__Err;
   function core_collection__isOk(r) {
     return (() => {
-  const __s55 = r;
-  if ((__s55.tag === "Ok")) {  return true; }
-  if ((__s55.tag === "Err")) {  return false; }
+  const __s56 = r;
+  if ((__s56.tag === "Ok")) {  return true; }
+  if ((__s56.tag === "Err")) {  return false; }
   return null;
 })();
   }
   function core_collection__isErr(r) {
     return (() => {
-  const __s56 = r;
-  if ((__s56.tag === "Ok")) {  return false; }
-  if ((__s56.tag === "Err")) {  return true; }
+  const __s57 = r;
+  if ((__s57.tag === "Ok")) {  return false; }
+  if ((__s57.tag === "Err")) {  return true; }
   return null;
 })();
   }
   function core_collection__unwrapOr(r, d) {
     return (() => {
-  const __s57 = r;
-  if ((__s57.tag === "Ok")) { const v = __s57[0];  return v; }
-  if ((__s57.tag === "Err")) {  return d; }
+  const __s58 = r;
+  if ((__s58.tag === "Ok")) { const v = __s58[0];  return v; }
+  if ((__s58.tag === "Err")) {  return d; }
   return null;
 })();
   }
   function core_collection__mapOk(r, f) {
     return (() => {
-  const __s58 = r;
-  if ((__s58.tag === "Ok")) { const v = __s58[0];  return core_collection__Ok(f(v)); }
-  if ((__s58.tag === "Err")) { const e = __s58[0];  return core_collection__Err(e); }
+  const __s59 = r;
+  if ((__s59.tag === "Ok")) { const v = __s59[0];  return core_collection__Ok(f(v)); }
+  if ((__s59.tag === "Err")) { const e = __s59[0];  return core_collection__Err(e); }
   return null;
 })();
   }
   function core_collection__mapErr(r, f) {
     return (() => {
-  const __s59 = r;
-  if ((__s59.tag === "Ok")) { const v = __s59[0];  return core_collection__Ok(v); }
-  if ((__s59.tag === "Err")) { const e = __s59[0];  return core_collection__Err(f(e)); }
+  const __s60 = r;
+  if ((__s60.tag === "Ok")) { const v = __s60[0];  return core_collection__Ok(v); }
+  if ((__s60.tag === "Err")) { const e = __s60[0];  return core_collection__Err(f(e)); }
   return null;
 })();
   }
   function core_collection__flatMapOk(r, f) {
     return (() => {
-  const __s60 = r;
-  if ((__s60.tag === "Ok")) { const v = __s60[0];  return f(v); }
-  if ((__s60.tag === "Err")) { const e = __s60[0];  return core_collection__Err(e); }
+  const __s61 = r;
+  if ((__s61.tag === "Ok")) { const v = __s61[0];  return f(v); }
+  if ((__s61.tag === "Err")) { const e = __s61[0];  return core_collection__Err(e); }
   return null;
 })();
   }
   function core_collection__toList$Result(r) {
     return (() => {
-  const __s61 = r;
-  if ((__s61.tag === "Ok")) { const v = __s61[0];  return [v, ...([])]; }
-  if ((__s61.tag === "Err")) {  return []; }
+  const __s62 = r;
+  if ((__s62.tag === "Ok")) { const v = __s62[0];  return [v, ...([])]; }
+  if ((__s62.tag === "Err")) {  return []; }
   return null;
 })();
   }
@@ -912,17 +903,17 @@ try{__dshBoot();}catch(e){}
   const core_collection__SetCons = core_collection__Set__SetCons;
   const dict_core_collection_Functor_Set = {
     map: (d, fa, f) => (() => {
-  const __s62 = fa;
-  if ((__s62.tag === "SetNil")) {  return core_collection__SetNil(); }
-  if ((__s62.tag === "SetCons")) { const h = __s62[0]; const t = __s62[1];  return core_collection__add(dict_core_collection_Functor_Set.map(dict_core_collection_Functor_Set, t, f), f(h)); }
+  const __s63 = fa;
+  if ((__s63.tag === "SetNil")) {  return core_collection__SetNil(); }
+  if ((__s63.tag === "SetCons")) { const h = __s63[0]; const t = __s63[1];  return core_collection__add(dict_core_collection_Functor_Set.map(dict_core_collection_Functor_Set, t, f), f(h)); }
   return null;
 })()
   };
   const dict_core_collection_Foldable_Set = {
     fold: (d, fa, init, f) => (() => {
-  const __s63 = fa;
-  if ((__s63.tag === "SetNil")) {  return init; }
-  if ((__s63.tag === "SetCons")) { const h = __s63[0]; const t = __s63[1];  return dict_core_collection_Foldable_Set.fold(dict_core_collection_Foldable_Set, t, f(init, h), f); }
+  const __s64 = fa;
+  if ((__s64.tag === "SetNil")) {  return init; }
+  if ((__s64.tag === "SetCons")) { const h = __s64[0]; const t = __s64[1];  return dict_core_collection_Foldable_Set.fold(dict_core_collection_Foldable_Set, t, f(init, h), f); }
   return null;
 })()
   };
@@ -941,9 +932,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__remove$Set(s, x) {
     return (() => {
-  const __s64 = s;
-  if ((__s64.tag === "SetNil")) {  return core_collection__SetNil(); }
-  if ((__s64.tag === "SetCons")) { const h = __s64[0]; const t = __s64[1];  return (__eq(h, x) ? (() => {
+  const __s65 = s;
+  if ((__s65.tag === "SetNil")) {  return core_collection__SetNil(); }
+  if ((__s65.tag === "SetCons")) { const h = __s65[0]; const t = __s65[1];  return (__eq(h, x) ? (() => {
   return t;
 })() : (() => {
   return core_collection__SetCons(h, core_collection__remove$Set(t, x));
@@ -953,25 +944,25 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__size$Set(s) {
     return (() => {
-  const __s65 = s;
-  if ((__s65.tag === "SetNil")) {  return 0; }
-  if ((__s65.tag === "SetCons")) { const t = __s65[1];  return (core_collection__size$Set(t) + 1); }
+  const __s66 = s;
+  if ((__s66.tag === "SetNil")) {  return 0; }
+  if ((__s66.tag === "SetCons")) { const t = __s66[1];  return (core_collection__size$Set(t) + 1); }
   return null;
 })();
   }
   function core_collection__isEmpty$Set(s) {
     return (() => {
-  const __s66 = s;
-  if ((__s66.tag === "SetNil")) {  return true; }
-  if ((__s66.tag === "SetCons")) {  return false; }
+  const __s67 = s;
+  if ((__s67.tag === "SetNil")) {  return true; }
+  if ((__s67.tag === "SetCons")) {  return false; }
   return null;
 })();
   }
   function core_collection__contains$Set(s, x) {
     return (() => {
-  const __s67 = s;
-  if ((__s67.tag === "SetNil")) {  return false; }
-  if ((__s67.tag === "SetCons")) { const h = __s67[0]; const t = __s67[1];  return (__eq(h, x) ? (() => {
+  const __s68 = s;
+  if ((__s68.tag === "SetNil")) {  return false; }
+  if ((__s68.tag === "SetCons")) { const h = __s68[0]; const t = __s68[1];  return (__eq(h, x) ? (() => {
   return true;
 })() : (() => {
   return core_collection__contains$Set(t, x);
@@ -988,9 +979,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__forEach$Set(s, f) {
     return (() => {
-  const __s68 = s;
-  if ((__s68.tag === "SetNil")) {  return null; }
-  if ((__s68.tag === "SetCons")) { const h = __s68[0]; const t = __s68[1];  return (() => {
+  const __s69 = s;
+  if ((__s69.tag === "SetNil")) {  return null; }
+  if ((__s69.tag === "SetCons")) { const h = __s69[0]; const t = __s69[1];  return (() => {
   f(h);
   return core_collection__forEach$Set(t, f);
 })(); }
@@ -999,9 +990,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__union(s1, s2) {
     return (() => {
-  const __s69 = s1;
-  if ((__s69.tag === "SetNil")) {  return s2; }
-  if ((__s69.tag === "SetCons")) { const h = __s69[0]; const t = __s69[1];  return (core_collection__contains$Set(s2, h) ? (() => {
+  const __s70 = s1;
+  if ((__s70.tag === "SetNil")) {  return s2; }
+  if ((__s70.tag === "SetCons")) { const h = __s70[0]; const t = __s70[1];  return (core_collection__contains$Set(s2, h) ? (() => {
   return core_collection__union(t, s2);
 })() : (() => {
   return core_collection__SetCons(h, core_collection__union(t, s2));
@@ -1011,9 +1002,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__intersect(s1, s2) {
     return (() => {
-  const __s70 = s1;
-  if ((__s70.tag === "SetNil")) {  return core_collection__SetNil(); }
-  if ((__s70.tag === "SetCons")) { const h = __s70[0]; const t = __s70[1];  return (core_collection__contains$Set(s2, h) ? (() => {
+  const __s71 = s1;
+  if ((__s71.tag === "SetNil")) {  return core_collection__SetNil(); }
+  if ((__s71.tag === "SetCons")) { const h = __s71[0]; const t = __s71[1];  return (core_collection__contains$Set(s2, h) ? (() => {
   return core_collection__SetCons(h, core_collection__intersect(t, s2));
 })() : (() => {
   return core_collection__intersect(t, s2);
@@ -1023,9 +1014,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__filter$Set(s, p) {
     return (() => {
-  const __s71 = s;
-  if ((__s71.tag === "SetNil")) {  return core_collection__SetNil(); }
-  if ((__s71.tag === "SetCons")) { const h = __s71[0]; const t = __s71[1];  return (p(h) ? (() => {
+  const __s72 = s;
+  if ((__s72.tag === "SetNil")) {  return core_collection__SetNil(); }
+  if ((__s72.tag === "SetCons")) { const h = __s72[0]; const t = __s72[1];  return (p(h) ? (() => {
   return core_collection__SetCons(h, core_collection__filter$Set(t, p));
 })() : (() => {
   return core_collection__filter$Set(t, p);
@@ -1035,17 +1026,17 @@ try{__dshBoot();}catch(e){}
   }
   function core_collection__flatMap(s, f) {
     return (() => {
-  const __s72 = s;
-  if ((__s72.tag === "SetNil")) {  return core_collection__SetNil(); }
-  if ((__s72.tag === "SetCons")) { const h = __s72[0]; const t = __s72[1];  return core_collection__union(f(h), core_collection__flatMap(t, f)); }
+  const __s73 = s;
+  if ((__s73.tag === "SetNil")) {  return core_collection__SetNil(); }
+  if ((__s73.tag === "SetCons")) { const h = __s73[0]; const t = __s73[1];  return core_collection__union(f(h), core_collection__flatMap(t, f)); }
   return null;
 })();
   }
   function core_collection__toList$Set(s) {
     return (() => {
-  const __s73 = s;
-  if ((__s73.tag === "SetNil")) {  return []; }
-  if ((__s73.tag === "SetCons")) { const h = __s73[0]; const t = __s73[1];  return [h, ...(core_collection__toList$Set(t))]; }
+  const __s74 = s;
+  if ((__s74.tag === "SetNil")) {  return []; }
+  if ((__s74.tag === "SetCons")) { const h = __s74[0]; const t = __s74[1];  return [h, ...(core_collection__toList$Set(t))]; }
   return null;
 })();
   }
@@ -1155,9 +1146,9 @@ try{__dshBoot();}catch(e){}
   }
   function core_real__ratOr(s, fallback) {
     return (() => {
-  const __s74 = (() => { const v = Number(String(s)); return Number.isNaN(v) ? None() : Some(v); })();
-  if ((__s74.tag === "Some")) { const r = __s74[0];  return r; }
-  if ((__s74.tag === "None")) {  return fallback; }
+  const __s75 = (() => { const v = Number(String(s)); return Number.isNaN(v) ? None() : Some(v); })();
+  if ((__s75.tag === "Some")) { const r = __s75[0];  return r; }
+  if ((__s75.tag === "None")) {  return fallback; }
   return null;
 })();
   }
