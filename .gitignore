@@ -42,6 +42,9 @@ app/probe.png
 app/lc*.txt
 app/screen.png
 
+# 运行环境依赖：仓根 core/ 由 scripts/sync-deps.ps1 从主仓同步（真源=主仓，不入库）
+/core/
+
 # 精简工具链本体（随 AndroidSDK for CandyIDE.zip 解压而来，不入库）
 sdk-lite/bin/
 sdk-lite/lib/

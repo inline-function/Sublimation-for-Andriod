@@ -11,12 +11,24 @@ KT 端用普通 MD 视图（MaterialButton/TextView/LinearLayout，不使用 Com
 
 | 目录 | 内容 |
 | --- | --- |
-| `android doc/` | 安卓目标文档：《安卓标准库》《精简工具链》 |
+| `android doc/` | 安卓目标文档：《安卓标准库》《精简工具链》《运行环境》 |
 | `annotation processer/` | 安卓注解处理器（`@android` 内建校验、`@view` 视图变换、`@postcompile` APK 构建钩子） |
 | `app/` | 编译输入目录：示例应用（`main.subl`）、安卓标准库（`*.subl`）与 `core/` 标准库副本 |
 | `android-app/` | 壳工程：单活动 + WebView + `DshBridge`（JS-KT 桥），兼容 Gradle 与精简工具链两种构建 |
 | `sdk-lite/` | 精简工具链工作区（Windows 版，aapt2/d8/apksigner/kotlinc，本体为 `AndroidSDK for CandyIDE.zip`，不入库，见 `android doc/精简工具链.md`） |
 | `LiteASDK/` | 安卓/Termux 精简工具链（aapt2/zipalign 为 aarch64 原生，取自 Termux 官方包；本体随 `LiteASDK.zip` 分发，不入库，见 `LiteASDK/README.md`） |
+| `scripts/` | 运行环境维护脚本：`sync-deps.ps1` 从主仓同步 `core/` 与 `annotation processer/`（真源=主仓，见 `android doc/运行环境.md`） |
+
+## 运行环境
+
+编译器按 **CWD 相对路径**装载处理器（`annotation processer/`）与处理器脚本的 stdlib（`core/`），
+因此 **compile 从本仓根运行**。首次使用或主仓更新后先同步依赖：
+
+```bat
+powershell -ExecutionPolicy Bypass -File scripts\sync-deps.ps1
+```
+
+约定与机制详见 [`android doc/运行环境.md`](android%20doc/运行环境.md)。
 
 ## 端到端流程
 
