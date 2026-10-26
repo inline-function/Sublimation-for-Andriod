@@ -13,8 +13,41 @@ AndroidSDK for CandyIDE/
 │           kotlin-compiler.jar、kotlin-stdlib.jar、trove4j.jar
 ├── libs/   AndroidX + Material 全套依赖（AAR/JAR，版本钉死）
 ├── keystore/debug.keystore   构建签名（candydebug，机器间可互换）
-└── build/  build-apk.ps1 / build-apk.sh / gen-r.py
+├── build/  build-apk.ps1 / build-apk.sh / gen-r.py
+└── template-app/  应用模板（壳工程，开箱即改即构建）
 ```
+
+## 模板工程（template-app）
+
+`template-app/` 是一个最小可用的安卓壳工程：单活动 + WebView + `DshBridge`
+（JS-KT 桥，证书 `functor.sublimation.android`），含占位 `app.js`。
+插件开发者复制该目录即可起步——既可走精简工具链，也保留了 Gradle 包装
+（`gradlew`、`build.gradle.kts`）兼容完整 Gradle 构建。
+
+构建模板（无 Gradle，约 1 分钟）：
+
+```bash
+powershell -ExecutionPolicy Bypass -File "build/build-apk.ps1" \
+  -Project template-app/app -Out app-debug.apk
+```
+
+### 模板渲染能力清单（DshBridge 视图分支）
+
+| 视图 tag | 说明 |
+| --- | --- |
+| `Box` | 竖排/横排容器；`scrollable=true` 包进 ScrollView（纵向）/HorizontalScrollView（横向）；
+含 `FloatingButton` 子视图时自动改 FrameLayout 悬浮叠放（其余子视图照常排布） |
+| `Button` / `FloatingButton` | MaterialButton；FloatingButton 为 MD 悬浮按钮（Gravity BOTTOM\|END，16dp 边距） |
+| `Text` / `TextField` | TextView；EditText 输入 |
+| `Switch` / `Checkbox` | MaterialSwitch；MaterialCheckBox |
+| `Slider` | MaterialSlider（值滑块） |
+| `Image` | ImageView（网络/项目图片） |
+| `Progress` | ProgressBar |
+| `Chart` | 折线/柱状自绘图表（ChartView：points/labels/kind/color） |
+| `TimelineView` | 时间线列表（纵向/横向可滑动） |
+
+平台能力（`__dshAndroid`）：剪贴板、持久化、振动、屏幕信息、安装应用列表、
+`fmtTime`（毫秒→"MM-dd HH:mm"）等，详见编译器仓的安卓注解处理器与安卓标准库文档。
 
 ## 使用
 
@@ -27,7 +60,8 @@ powershell -ExecutionPolicy Bypass -File "build/build-apk.ps1" \
 sh build/build-apk.sh -p <工程目录> -o <apk 路径>
 ```
 
-工程布局：`<Project>/src/main/{AndroidManifest.xml, java/**/*.kt, res, assets}`。
+工程布局：`<Project>/src/main/{AndroidManifest.xml, java/**/*.kt, res, assets}`
+（Gradle 布局的工程传 `app/` 模块目录，如 `template-app/app`）。
 构建步骤（约 1 分钟，全量）：解压依赖 AAR → aapt2 编译/链接资源 → 生成库 R 类 →
 编译 Kotlin → d8 打 dex → 注入 dex+assets → zipalign → apksigner 签名。
 
