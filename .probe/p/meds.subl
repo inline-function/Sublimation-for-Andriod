@@ -1,0 +1,67 @@
+// android/meds.subl —— 药品记录数据模型与持久化（android doc/安卓标准库.md §药品记录）
+//
+// 吃药 app 的数据层：一条记录 = 药名 + 剂量 + 服药时间，编码为
+//   "name | amount | time"（如 "阿莫西林 | 1 片 | 10-25 15:20"），
+// 多条以 ";" 拼接整体写入 storage 键 "meds"（与 language-service 的用药助手雏形
+// 同约定，见 LspAnalysisTest 内联源码）。
+//
+// 典型用法：
+//   @mut var meds: List[Str] = emptyList()
+//   @mut var timeline = TimelineView()
+//   ...
+//   unchecked curTime = nowStr()                       // 当前时间 "MM-dd HH:mm"
+//   meds = makeDose(meds, "阿莫西林", "1 片", curTime)  // 最新在前（cons 头插）
+//   unchecked saveMeds(meds)                           // 持久化到 storage
+//   timeline = TimelineView(times = medTimes(meds), labels = medLabels(meds))
+//   冷启动恢复：unchecked meds = loadMeds()
+
+// ---------- 单条记录 ----------
+
+// 编码一条记录：doseEntry("阿莫西林", "1 片", "10-25 15:20") = "阿莫西林 | 1 片 | 10-25 15:20"。
+fun doseEntry(name: Str, amount: Str, t: Str): Str =
+    concat(concat(concat(name, " | "), amount), concat(" | ", t))
+
+// 追加一条记录到列表头（最新在前）。
+fun makeDose(cur: List[Str], name: Str, amount: Str, t: Str): List[Str] =
+    cons(doseEntry(name, amount, t), cur)
+
+// 取记录的药名/剂量/时间（按 " | " 切分，字段缺失返回 ""）。
+fun doseName(entry: Str): Str = entryPart(entry, 0)
+fun doseAmount(entry: Str): Str = entryPart(entry, 1)
+fun doseTime(entry: Str): Str = entryPart(entry, 2)
+
+fun entryPart(entry: Str, i: Nat): Str =
+    getOrElse(elementAt(strSplit(entry, " | "), i), "")
+
+// ---------- 列表投影（供 TimelineView） ----------
+
+// 全部服药时间点。
+fun medTimes(meds: List[Str]): List[Str] = map(meds) { m => doseTime(m) }
+
+// 全部标注："药名 · 剂量"。
+fun medLabels(meds: List[Str]): List[Str] =
+    map(meds) { m => concat(doseName(m), concat(" · ", doseAmount(m))) }
+
+// ---------- 持久化（storage 键 "meds"，条目间 ";"） ----------
+
+// 列表转存储串：joinMeds(["a|1|t1", "b|2|t2"]) = "a|1|t1;b|2|t2"。
+fun joinMeds(xs: List[Str]): Str =
+    xs.fold("") { acc, x => if (acc == "") x else concat(acc, concat(";", x)) }
+
+// 读取已保存的记录；无记录（空串）返回空列表。
+@impure
+fun loadMeds(): List[Str] {
+    var s: Str = storageGet("meds")
+    return if (s == "") emptyList() else strSplit(s, ";")
+}
+
+// 覆盖保存记录列表。
+@impure
+fun saveMeds(xs: List[Str]): Null {
+    storagePut("meds", joinMeds(xs))
+    null
+}
+
+// 当前时间格式化为 "MM-dd HH:mm"（timeNow 取 Unix 毫秒，fmtTime 格式化）。
+@impure
+fun nowStr(): Str = fmtTime(timeNow())

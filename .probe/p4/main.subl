@@ -1,0 +1,4 @@
+fun root(): Box = Box() {
+    Text()
+}
+fun main(): Null { unchecked layout(root) }

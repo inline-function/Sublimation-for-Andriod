@@ -1,0 +1,41 @@
+// android/Modifier.subl —— 修饰符链（android doc/安卓标准库.md §Modifier 与 Alignment）
+//
+// 视图协议 v2（android doc/视图渲染协议 v2 见 Sugar-Manual docs/视图协议v2.md）：
+// **一个视图可以同时带任意多个修饰符**——Modifier 是"元素的有序链"，不是单个枚举值。
+//
+// 链的写法（语言只有 enum/struct 与函数，没有方法定义 → 用同名重载表达 Compose 的 Modifier.x().y()）：
+//   Box(modifier = width(4).height(20))          // 竖条：宽 4 × 高 20（旧协议做不到）
+//   Box(modifier = fillWidth().paddingHV(24, 8)) // 满宽 + 水平 24 / 垂直 8 内边距
+//   Text(modifier = fillWidth().weight(1.0))     // 线性容器内弹性分配（Row/Column weight）
+// 链的顺序 = 书写顺序 = JSON "modifiers" 数组顺序 = KT 端应用顺序（后者覆盖前者，与 Compose 一致）。
+//
+// 结构：Modifier 包一层元素列表 MKind（避免 Modifier 直接定义在 enum 里造成的类型歧义）。
+// KT 端（DshBridge.applyModifiers）顺序应用；@compose 生成物编译期折叠成 Compose 的 Modifier 链。
+
+enum MKind {
+    Plain(),
+    FillMaxSize(),
+    WrapContent(),
+    Padding(Nat),
+    Width(Nat),
+    Height(Nat),
+    Center(),
+    FillWidth(),
+    FractionWidth(Rat),
+    FillHeight(),
+    FractionHeight(Rat),
+    Padding4(Nat, Nat, Nat, Nat),
+    PaddingH(Nat),
+    PaddingV(Nat),
+    Weight(Rat),
+    Background(Str),
+    Clip(Nat),
+    Alpha(Rat),
+    Flash()
+}
+
+@view struct Modifier(parts: List[MKind] = Nil())
+
+// ---------- 链的基础操作 ----------
+
+// 空链（视图字段默认值）。

@@ -1,0 +1,136 @@
+// android/Modifier.subl —— 修饰符链（android doc/安卓标准库.md §Modifier 与 Alignment）
+//
+// 视图协议 v2（android doc/视图渲染协议 v2 见 Sugar-Manual docs/视图协议v2.md）：
+// **一个视图可以同时带任意多个修饰符**——Modifier 是"元素的有序链"，不是单个枚举值。
+//
+// 链的写法（语言只有 enum/struct 与函数，没有方法定义 → 用同名重载表达 Compose 的 Modifier.x().y()）：
+//   Box(modifier = width(4).height(20))          // 竖条：宽 4 × 高 20（旧协议做不到）
+//   Box(modifier = fillWidth().paddingHV(24, 8)) // 满宽 + 水平 24 / 垂直 8 内边距
+//   Text(modifier = fillWidth().weight(1.0))     // 线性容器内弹性分配（Row/Column weight）
+// 链的顺序 = 书写顺序 = JSON "modifiers" 数组顺序 = KT 端应用顺序（后者覆盖前者，与 Compose 一致）。
+//
+// 结构：Modifier 包一层元素列表 MKind（避免 Modifier 直接定义在 enum 里造成的类型歧义）。
+// KT 端（DshBridge.applyModifiers）顺序应用；@compose 生成物编译期折叠成 Compose 的 Modifier 链。
+
+enum MKind {
+    Plain(),
+    FillMaxSize(),
+    WrapContent(),
+    Padding(Nat),
+    Width(Nat),
+    Height(Nat),
+    Center(),
+    FillWidth(),
+    FractionWidth(Rat),
+    FillHeight(),
+    FractionHeight(Rat),
+    Padding4(Nat, Nat, Nat, Nat),
+    PaddingH(Nat),
+    PaddingV(Nat),
+    Weight(Rat),
+    Background(Str),
+    Clip(Nat),
+    Alpha(Rat),
+    Flash()
+}
+
+@view struct Modifier(parts: List[MKind] = Nil())
+
+// ---------- 链的基础操作 ----------
+
+// 空链（视图字段默认值）。
+fun Plain(): Modifier = Modifier(Nil())
+
+// 链内拼接：a 的元素在前、b 的在后。Modifier + Modifier 的语义同 Compose 的 plus。
+fun Chain(a: Modifier, b: Modifier): Modifier = Modifier(partsConcat(a.parts, b.parts))
+
+fun partsConcat(a: List[MKind], b: List[MKind]): List[MKind] = when (a) {
+    Nil => b
+    is Cons(h, t) => Cons(h, partsConcat(t, b))
+    else => b
+}
+
+fun one(x: MKind): Modifier = Modifier(Cons(x, Nil()))
+
+// ---------- 尺寸 ----------
+
+// 起链：宽 n（dp）。
+fun width(n: Nat): Modifier = one(Width(n))
+// 挂链：width(4).height(20)
+fun width(m: Modifier, n: Nat): Modifier = Chain(m, one(Width(n)))
+
+fun height(n: Nat): Modifier = one(Height(n))
+fun height(m: Modifier, n: Nat): Modifier = Chain(m, one(Height(n)))
+
+fun size(n: Nat): Modifier = Chain(one(Width(n)), one(Height(n)))
+fun size(m: Modifier, n: Nat): Modifier = Chain(m, Chain(one(Width(n)), one(Height(n))))
+
+fun fillMaxSize(): Modifier = one(FillMaxSize())
+fun fillMaxSize(m: Modifier): Modifier = Chain(m, one(FillMaxSize()))
+
+fun wrapContent(): Modifier = one(WrapContent())
+fun wrapContent(m: Modifier): Modifier = Chain(m, one(WrapContent()))
+
+// 满宽 / 满高。
+fun fillWidth(): Modifier = one(FillWidth())
+fun fillWidth(m: Modifier): Modifier = Chain(m, one(FillWidth()))
+
+fun fillHeight(): Modifier = one(FillHeight())
+fun fillHeight(m: Modifier): Modifier = Chain(m, one(FillHeight()))
+
+// 按父容器比例填满（0..1）：fillMaxWidth(0.5f) / fillMaxHeight(0.45f) 的等价物。
+fun fractionWidth(f: Rat): Modifier = one(FractionWidth(f))
+fun fractionWidth(m: Modifier, f: Rat): Modifier = Chain(m, one(FractionWidth(f)))
+
+fun fractionHeight(f: Rat): Modifier = one(FractionHeight(f))
+fun fractionHeight(m: Modifier, f: Rat): Modifier = Chain(m, one(FractionHeight(f)))
+
+// 线性容器内弹性分配（Row/Column 的 weight）。
+fun weight(w: Rat): Modifier = one(Weight(w))
+fun weight(m: Modifier, w: Rat): Modifier = Chain(m, one(Weight(w)))
+
+// ---------- 内边距 ----------
+
+fun padding(n: Nat): Modifier = one(Padding(n))
+fun padding(m: Modifier, n: Nat): Modifier = Chain(m, one(Padding(n)))
+
+// 四边分别：padding4(左, 上, 右, 下)。
+fun padding4(l: Nat, t: Nat, r: Nat, b: Nat): Modifier = one(Padding4(l, t, r, b))
+fun padding4(m: Modifier, l: Nat, t: Nat, r: Nat, b: Nat): Modifier = Chain(m, one(Padding4(l, t, r, b)))
+
+// 方向化：paddingHV(horizontal, vertical)——Compose 的 padding(horizontal = h, vertical = v)。
+fun paddingHV(h: Nat, v: Nat): Modifier = Chain(one(PaddingH(h)), one(PaddingV(v)))
+fun paddingHV(m: Modifier, h: Nat, v: Nat): Modifier = Chain(m, Chain(one(PaddingH(h)), one(PaddingV(v))))
+
+fun paddingH(h: Nat): Modifier = one(PaddingH(h))
+fun paddingH(m: Modifier, h: Nat): Modifier = Chain(m, one(PaddingH(h)))
+
+fun paddingV(v: Nat): Modifier = one(PaddingV(v))
+fun paddingV(m: Modifier, v: Nat): Modifier = Chain(m, one(PaddingV(v)))
+
+// ---------- 对齐 ----------
+
+fun center(): Modifier = one(Center())
+fun center(m: Modifier): Modifier = Chain(m, one(Center()))
+
+// 子视图在父容器中的对齐用容器自身的 contentAlignment 字段（Alignment 枚举），
+// 不进 Modifier 链——原因：视图字段形参作用域会遮蔽同名的枚举构造子/函数（见契约 §7 R1），
+// 而 Center() 是 Box.contentAlignment 的默认值，链元素叫同名会撞车。
+
+// ---------- 外观与动画 ----------
+
+// 背景色："#RRGGBB" / "#AARRGGBB" / 主题色名（见 Theme.subl）。
+fun background(c: Str): Modifier = one(Background(c))
+fun background(m: Modifier, c: Str): Modifier = Chain(m, one(Background(c)))
+
+// 圆角裁剪（dp）。
+fun clip(n: Nat): Modifier = one(Clip(n))
+fun clip(m: Modifier, n: Nat): Modifier = Chain(m, one(Clip(n)))
+
+// 透明度（0..1）。
+fun alpha(a: Rat): Modifier = one(Alpha(a))
+fun alpha(m: Modifier, a: Rat): Modifier = Chain(m, one(Alpha(a)))
+
+// 动画最小集：无限透明度闪烁（1.0 ↔ 0.25，650ms 反向循环）。KT 端 AlphaAnimation，Compose 端 Modifier.flash()。
+fun flash(): Modifier = one(Flash())
+fun flash(m: Modifier): Modifier = Chain(m, one(Flash()))

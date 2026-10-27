@@ -1,0 +1,16 @@
+// android/Text.subl —— 文本视图（android doc/安卓标准库.md §布局）
+//
+// color 为 "#RRGGBB" / "#AARRGGBB"（含 alpha）或主题色名（Theme.subl，如 "primary"/"onSurfaceVariant"）；
+// size 单位为 sp；maxLines 为最大行数（0=不限）。
+// 协议 v2：flash = true 时文字无限透明度闪烁（动画最小集）。
+
+@view struct Text(
+    text: Str = "",
+    color: Str = "",
+    size: Rat = 0.0,
+    bold: Bool = false,
+    italic: Bool = false,
+    maxLines: Nat = 0,
+    flash: Bool = false,
+    modifier: Modifier = Plain()
+)

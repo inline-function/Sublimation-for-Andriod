@@ -1,6 +1,12 @@
 // 用药记录 app —— 记录吃药的药名与剂量，时间线展示服药时间点（可滑动），storage 持久化。
 // 数据层见 meds.subl（"name | amount | time" 编码、storage 键 "meds"）；
 // 时间线组件见 TimelineView.subl；视图机制见 android doc/安卓标准库.md。
+//
+// 视图协议 v2 演示（docs/视图协议v2.md）：
+//   - **真链式 Modifier**：Box(modifier = fillWidth().paddingHV(12, 6))——满宽 + 方向化内边距，
+//     一条链带多个修饰符（旧协议一个视图只能带一个）；
+//   - **动态药物行**：rowsBody 递归渲染任意长度列表，每行的 onClick 由运行时回调实例键
+//     （__dshCb）独立分槽——点哪行就是哪行（旧协议串点击 bug 的回归覆盖）。
 
 @impure
 fun main(): Null {
@@ -22,14 +28,14 @@ fun content(): Box {
     @mut var status = Text(text = concat(concat("共 ", toStr(size(meds))), " 条"))
     @mut var rows = rowsView(meds)
     @mut var timeline = TimelineView(times = medTimes(meds), labels = medLabels(meds))
-    return Box(modifier = Plain()) {
-        Box(modifier = Plain()) {
+    return Box(modifier = fillMaxSize()) {
+        Box(modifier = fillWidth().paddingHV(16, 10)) {
             Text(text = "用药记录", size = 22, bold = true)
         }
-        Box(modifier = Plain()) { nameField }
-        Box(modifier = Plain()) { amountField }
-        Box(modifier = Plain(), orientation = "horizontal") {
-            Button(onClick = {
+        Box(modifier = fillWidth().paddingH(12)) { nameField }
+        Box(modifier = fillWidth().paddingH(12)) { amountField }
+        Box(modifier = fillWidth().paddingHV(12, 6), orientation = "horizontal") {
+            Button(modifier = weight(1.0), onClick = {
                 unchecked curTime = nowStr()
                 meds = makeDose(meds, nameField.text, amountField.text, curTime)
                 unchecked saveMeds(meds)
@@ -41,7 +47,7 @@ fun content(): Box {
             }) {
                 Text(text = "＋ 添加")
             }
-            Button(onClick = {
+            Button(modifier = weight(1.0), onClick = {
                 meds = emptyList()
                 unchecked saveMeds(meds)
                 status.text = "共 0 条"
@@ -51,21 +57,29 @@ fun content(): Box {
                 Text(text = "清空")
             }
         }
-        Box(modifier = Plain()) { status }
-        Box(modifier = Plain()) { rows }
-        Box(modifier = Plain()) { timeline }
+        Box(modifier = fillWidth().paddingH(12)) { status }
+        Card(modifier = fillWidth(), cornerRadius = 12, elevation = 1) { rows }
+        Box(modifier = fillWidth().paddingH(12)) { timeline }
     }
 }
 
 // 记录列表：每条一行（倒序，最新在最上）。
-@composable fun rowsView(meds: List[Str]): Box = Box(modifier = Plain()) {
+@composable fun rowsView(meds: List[Str]): Box = Box(modifier = fillWidth()) {
     rowsBody(reverse(meds))
 }
 
+// 动态药物行：递归渲染，每行一个 Button——onClick 经 __dshCb 按构造实例分槽（协议 v2 §2），
+// 任意长度列表每行的点击都只回调自己那行的闭包。
 @composable fun rowsBody(xs: List[Str]): Any = when (xs) {
-    Nil => Box(modifier = Plain()) {}
-    is Cons(m, rest) => Box(modifier = Plain(), orientation = "vertical") {
-        Text(text = m, size = 15)
+    Nil => Box(modifier = emptyList()) {}
+    is Cons(m, rest) => Box(modifier = fillWidth().padding4(0, 0, 0, 6)) {
+        Button(modifier = fillWidth(), onClick = {
+            unchecked log(concat("picked row: ", m), 2)
+            null
+        }) {
+            Text(text = m, size = 15)
+        }
         rowsBody(rest)
     }
+    else => Box(modifier = emptyList()) {}
 }

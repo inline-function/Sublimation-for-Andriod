@@ -30,8 +30,8 @@ fun doseName(entry: Str): Str = entryPart(entry, 0)
 fun doseAmount(entry: Str): Str = entryPart(entry, 1)
 fun doseTime(entry: Str): Str = entryPart(entry, 2)
 
-fun entryPart(entry: Str, i: Nat): Str =
-    getOrElse(elementAt(strSplit(entry, " | "), i), "")
+fun entryPart(entry: Str, idx: Nat): Str =
+    getOrElse(elementAt(strSplit(entry, " | "), idx), "")
 
 // ---------- 列表投影（供 TimelineView） ----------
 
